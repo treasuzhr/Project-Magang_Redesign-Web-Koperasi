@@ -41,75 +41,133 @@ if (siteHeader) {
 
 const categoryTrack = document.querySelector('#category-track');
 const categoryArrows = document.querySelectorAll('[data-carousel]');
-const categoryDots = document.querySelectorAll('.carousel-dot');
+const categoryDotsContainer = document.querySelector('.carousel-dots');
+let categoryDots = [...(categoryDotsContainer?.children || [])];
 
 if (categoryTrack) {
     const originalCards = [...categoryTrack.children];
-
-    for (let copy = 0; copy < 2; copy += 1) {
-        const cloneFragment = document.createDocumentFragment();
-
-        originalCards.forEach((card) => {
-            const clone = card.cloneNode(true);
-            clone.setAttribute('aria-hidden', 'true');
-            clone.dataset.carouselClone = 'true';
-            cloneFragment.append(clone);
-        });
-
-        categoryTrack.append(cloneFragment);
-    }
-
-    const cloneStart = categoryTrack.querySelector('[data-carousel-clone]');
+    const copiesPerSide = 2;
     const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
-    let loopWidth = 0;
+    let cards = [];
     let startPosition = 0;
-    let pageWidth = 0;
+    let cardStep = 0;
+    let cardsPerPage = 1;
     let pointerStart = null;
+    let isHovered = false;
     let hasFocus = false;
     let pauseUntil = 0;
     let programmaticMove = false;
     let settleTimeout;
     let manualScrollTimeout;
 
-    const measureLoop = () => {
-        if (!cloneStart) {
-            return;
-        }
+    const createClones = () => {
+        const clones = document.createDocumentFragment();
 
-        loopWidth = cloneStart.getBoundingClientRect().left
-            - categoryTrack.getBoundingClientRect().left
-            + categoryTrack.scrollLeft;
-        startPosition = loopWidth - (Number.parseFloat(getComputedStyle(categoryTrack).paddingLeft) || 0);
+        originalCards.forEach((card) => {
+            const clone = card.cloneNode(true);
+            clone.setAttribute('aria-hidden', 'true');
+            clone.dataset.carouselClone = 'true';
+            clones.append(clone);
+        });
 
-        const card = categoryTrack.querySelector('.category-card');
-        const gap = Number.parseFloat(getComputedStyle(categoryTrack).columnGap) || 0;
-        pageWidth = ((card?.getBoundingClientRect().width || 0) + gap) * 2;
+        return clones;
     };
 
-    const updateDots = () => {
-        if (!loopWidth || !categoryDots.length) {
+    const beforeClones = document.createDocumentFragment();
+    for (let copy = 0; copy < copiesPerSide; copy += 1) {
+        beforeClones.append(createClones());
+    }
+    categoryTrack.prepend(beforeClones);
+
+    for (let copy = 0; copy < copiesPerSide; copy += 1) {
+        categoryTrack.append(createClones());
+    }
+
+    const cardPosition = (card) => {
+        const trackRect = categoryTrack.getBoundingClientRect();
+        const paddingLeft = Number.parseFloat(getComputedStyle(categoryTrack).paddingLeft) || 0;
+
+        return card.getBoundingClientRect().left - trackRect.left + categoryTrack.scrollLeft - paddingLeft;
+    };
+
+    const measureLoop = () => {
+        cards = [...categoryTrack.children];
+        const firstOriginal = cards[copiesPerSide * originalCards.length];
+        const secondOriginal = cards[copiesPerSide * originalCards.length + 1];
+
+        if (!firstOriginal || !secondOriginal) {
             return;
         }
 
-        const position = ((categoryTrack.scrollLeft - startPosition) % loopWidth + loopWidth) % loopWidth;
-        const activeIndex = Math.min(categoryDots.length - 1, Math.floor(position / pageWidth));
+        cardStep = cardPosition(secondOriginal) - cardPosition(firstOriginal);
+        startPosition = cardPosition(firstOriginal);
 
+        const style = getComputedStyle(categoryTrack);
+        const paddingLeft = Number.parseFloat(style.paddingLeft) || 0;
+        const paddingRight = Number.parseFloat(style.paddingRight) || 0;
+        const contentEnd = categoryTrack.clientWidth - paddingLeft - paddingRight;
+        cardsPerPage = 0;
+
+        for (let index = 0; index < originalCards.length; index += 1) {
+            const card = cards[copiesPerSide * originalCards.length + index];
+            if (cardPosition(card) - startPosition + card.getBoundingClientRect().width > contentEnd + 0.5) {
+                break;
+            }
+            cardsPerPage += 1;
+        }
+        cardsPerPage = Math.max(1, cardsPerPage);
+
+        if (categoryDotsContainer) {
+            categoryDotsContainer.replaceChildren(...Array.from(
+                { length: Math.ceil(originalCards.length / cardsPerPage) },
+                () => {
+                    const dot = document.createElement('span');
+                    dot.className = 'carousel-dot';
+                    return dot;
+                },
+            ));
+            categoryDots = [...categoryDotsContainer.children];
+        }
+    };
+
+    const nearestCardIndex = () => {
+        let nearestIndex = 0;
+        let nearestDistance = Number.POSITIVE_INFINITY;
+
+        cards.forEach((card, index) => {
+            const distance = Math.abs(cardPosition(card) - categoryTrack.scrollLeft);
+            if (distance < nearestDistance) {
+                nearestDistance = distance;
+                nearestIndex = index;
+            }
+        });
+
+        return nearestIndex;
+    };
+
+    const logicalCardIndex = (index) => (
+        (index - copiesPerSide * originalCards.length) % originalCards.length + originalCards.length
+    ) % originalCards.length;
+
+    const updateDots = () => {
+        if (!categoryDots.length) {
+            return;
+        }
+
+        const activeIndex = Math.floor(logicalCardIndex(nearestCardIndex()) / cardsPerPage) % categoryDots.length;
         categoryDots.forEach((dot, index) => {
             dot.classList.toggle('carousel-dot--active', index === activeIndex);
         });
     };
 
-    const normalizePosition = () => {
-        if (!loopWidth) {
+    const normalizeToOriginalCards = () => {
+        if (!cards.length || !cardStep) {
             return;
         }
 
-        const position = ((categoryTrack.scrollLeft - startPosition) % loopWidth + loopWidth) % loopWidth;
-        const normalizedPosition = startPosition + position;
-
-        if (Math.abs(categoryTrack.scrollLeft - normalizedPosition) > 0.5) {
-            categoryTrack.scrollLeft = normalizedPosition;
-        }
+        const originalIndex = copiesPerSide * originalCards.length + logicalCardIndex(nearestCardIndex());
+        categoryTrack.scrollLeft = cardPosition(cards[originalIndex]);
+        updateDots();
     };
 
     const pauseTemporarily = (duration = 1800) => {
@@ -119,27 +177,15 @@ if (categoryTrack) {
     const finishProgrammaticMove = () => {
         window.clearTimeout(settleTimeout);
         programmaticMove = false;
-        normalizePosition();
-        updateDots();
+        normalizeToOriginalCards();
     };
 
-    categoryTrack.addEventListener('scrollend', () => {
-        if (programmaticMove) {
-            finishProgrammaticMove();
-        } else if (!pointerStart) {
-            snapToPage();
-        }
-    });
-
-    const moveByPage = (direction) => {
-        if (!loopWidth || !pageWidth) {
-            return;
-        }
-
-        pauseTemporarily();
+    const scrollToCard = (card) => {
+        window.clearTimeout(settleTimeout);
+        window.clearTimeout(manualScrollTimeout);
         programmaticMove = true;
         categoryTrack.scrollTo({
-            left: categoryTrack.scrollLeft + direction * pageWidth,
+            left: cardPosition(card),
             behavior: reducedMotion.matches ? 'auto' : 'smooth',
         });
 
@@ -150,42 +196,37 @@ if (categoryTrack) {
         }
     };
 
-    const snapToPage = () => {
-        if (!loopWidth || !pageWidth) {
+    const moveByCard = (direction) => {
+        if (!cardStep) {
             return;
         }
 
-        const position = ((categoryTrack.scrollLeft - startPosition) % loopWidth + loopWidth) % loopWidth;
-        const page = Math.round(position / pageWidth);
-        const target = page * pageWidth >= loopWidth ? startPosition : startPosition + page * pageWidth;
-
-        programmaticMove = true;
-        categoryTrack.scrollTo({
-            left: target,
-            behavior: reducedMotion.matches ? 'auto' : 'smooth',
-        });
-
-        if (reducedMotion.matches) {
-            finishProgrammaticMove();
-        } else {
-            settleTimeout = window.setTimeout(finishProgrammaticMove, 900);
-        }
+        pauseTemporarily(5000);
+        const currentIndex = nearestCardIndex();
+        const targetIndex = Math.max(0, Math.min(cards.length - 1, currentIndex + direction));
+        scrollToCard(cards[targetIndex]);
     };
 
     const settleManualScroll = () => {
         window.clearTimeout(manualScrollTimeout);
-
         if (!programmaticMove && !pointerStart) {
-            snapToPage();
+            normalizeToOriginalCards();
         }
     };
 
     categoryArrows.forEach((arrow) => {
         arrow.addEventListener('click', () => {
-            const direction = arrow.dataset.carousel === 'next' ? 1 : -1;
-
-            moveByPage(direction);
+            moveByCard(arrow.dataset.carousel === 'next' ? 1 : -1);
         });
+    });
+
+    const categoryCarousel = categoryTrack.closest('.category-carousel');
+    categoryCarousel?.addEventListener('pointerenter', () => {
+        isHovered = true;
+    });
+    categoryCarousel?.addEventListener('pointerleave', () => {
+        isHovered = false;
+        pauseTemporarily(5000);
     });
 
     categoryTrack.addEventListener('focusin', () => {
@@ -199,34 +240,34 @@ if (categoryTrack) {
     categoryTrack.addEventListener('keydown', (event) => {
         if (event.key === 'ArrowRight' || event.key === 'ArrowLeft') {
             event.preventDefault();
-            moveByPage(event.key === 'ArrowRight' ? 1 : -1);
+            moveByCard(event.key === 'ArrowRight' ? 1 : -1);
         }
     });
 
     categoryTrack.addEventListener('pointerdown', (event) => {
+        if (event.pointerType === 'touch') {
+            pauseTemporarily();
+            return;
+        }
+
+        window.clearTimeout(manualScrollTimeout);
+        window.clearTimeout(settleTimeout);
+        programmaticMove = false;
         pointerStart = {
             id: event.pointerId,
             x: event.clientX,
             scrollLeft: categoryTrack.scrollLeft,
         };
 
-        if (event.pointerType !== 'touch') {
-            event.preventDefault();
-            categoryTrack.setPointerCapture(event.pointerId);
-            categoryTrack.classList.add('is-dragging');
-        }
-
+        event.preventDefault();
+        categoryTrack.setPointerCapture(event.pointerId);
+        categoryTrack.classList.add('is-dragging');
         pauseTemporarily();
     });
     categoryTrack.addEventListener('pointermove', (event) => {
         if (pointerStart?.id === event.pointerId) {
             const rawPosition = pointerStart.scrollLeft - (event.clientX - pointerStart.x);
-            const position = loopWidth
-                ? startPosition + ((rawPosition - startPosition) % loopWidth + loopWidth) % loopWidth
-                : Math.max(0, rawPosition);
-
-            pointerStart.scrollLeft += position - rawPosition;
-            categoryTrack.scrollLeft = position;
+            categoryTrack.scrollLeft = Math.max(0, Math.min(categoryTrack.scrollWidth - categoryTrack.clientWidth, rawPosition));
         }
     });
 
@@ -235,26 +276,33 @@ if (categoryTrack) {
             pointerStart = null;
             categoryTrack.classList.remove('is-dragging');
             pauseTemporarily();
-            snapToPage();
+            window.clearTimeout(manualScrollTimeout);
+            manualScrollTimeout = window.setTimeout(settleManualScroll, 220);
         }
     };
 
     categoryTrack.addEventListener('pointerup', endDrag);
     categoryTrack.addEventListener('pointercancel', endDrag);
     categoryTrack.addEventListener('lostpointercapture', endDrag);
-
+    categoryTrack.addEventListener('scrollend', () => {
+        if (programmaticMove) {
+            finishProgrammaticMove();
+        } else {
+            settleManualScroll();
+        }
+    });
     categoryTrack.addEventListener('scroll', () => {
-        if (!programmaticMove && !pointerStart) {
-            normalizePosition();
+        if (!programmaticMove) {
+            pauseTemporarily();
             window.clearTimeout(manualScrollTimeout);
-            manualScrollTimeout = window.setTimeout(settleManualScroll, 180);
+            manualScrollTimeout = window.setTimeout(settleManualScroll, 220);
         }
         updateDots();
     }, { passive: true });
 
     window.setInterval(() => {
-        if (!reducedMotion.matches && !document.hidden && !hasFocus && performance.now() >= pauseUntil) {
-            moveByPage(1);
+        if (!reducedMotion.matches && !document.hidden && !isHovered && !hasFocus && performance.now() >= pauseUntil) {
+            moveByCard(1);
         }
     }, 4200);
 

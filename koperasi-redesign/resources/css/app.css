@@ -389,15 +389,15 @@ a:focus-visible {
 
 .category-track {
     display: grid;
-    grid-auto-columns: calc((100% - 45px) / 4);
+    grid-auto-columns: calc((100% - 47px) / 4);
     grid-auto-flow: column;
     gap: 15px;
     overflow-x: auto;
     overscroll-behavior-inline: contain;
     padding: 1px 1px 5px;
-    scroll-snap-type: none;
+    scroll-snap-type: x mandatory;
     scrollbar-width: none;
-    touch-action: pan-y;
+    touch-action: pan-x pan-y;
     cursor: grab;
 }
 
@@ -627,11 +627,8 @@ a:focus-visible {
     color: var(--brand-dark);
 }
 
-.news-card:hover time,
-.news-card:hover h3,
 .news-card:hover h3 a,
-.news-card:hover .news-card__body > p,
-.news-card:hover .news-card__more {
+.news-card h3 a:hover {
     color: var(--brand);
 }
 
@@ -996,7 +993,7 @@ a:focus-visible {
     }
 
     .category-track {
-        grid-auto-columns: calc((100% - 12px) / 2);
+        grid-auto-columns: calc((100% - 14px) / 2);
         gap: 12px;
     }
 
