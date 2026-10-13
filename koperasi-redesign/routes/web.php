@@ -1,16 +1,10 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use Illuminate\Validation\Rule;
 
 Route::get('/', function () {
-    $categories = [
-        ['name' => 'Snack', 'description' => 'Pilihan camilan', 'image' => 'assets/images/categories/snack.png'],
-        ['name' => 'Minuman', 'description' => 'Pilihan minuman', 'image' => 'assets/images/categories/minuman.png'],
-        ['name' => 'Sembako', 'description' => 'Kebutuhan sehari-hari', 'image' => 'assets/images/categories/sembako.png'],
-        ['name' => 'Sabun', 'description' => 'Perawatan kebersihan', 'image' => 'assets/images/categories/sabun.png'],
-        ['name' => 'Deterjen', 'description' => 'Kebutuhan rumah tangga', 'image' => 'assets/images/categories/deterjen.png'],
-        ['name' => 'Rokok', 'description' => 'Produk pilihan', 'image' => 'assets/images/categories/rokok.png'],
-    ];
+    $categories = config('product_categories');
 
     $news = [
         [
@@ -37,4 +31,22 @@ Route::get('/', function () {
     ];
 
     return view('welcome', compact('categories', 'news'));
-});
+})->name('home');
+
+Route::get('/produk', function () {
+    $categorySlugs = array_column(config('product_categories'), 'slug');
+    $filters = request()->validate([
+        'q' => ['nullable', 'string', 'max:100'],
+        'category' => ['nullable', 'string', Rule::in($categorySlugs)],
+        'min_price' => ['nullable', 'numeric', 'min:0'],
+        'max_price' => ['nullable', 'numeric', 'min:0', 'gte:min_price'],
+        'sort' => ['nullable', Rule::in(['name_asc', 'name_desc', 'price_asc', 'price_desc'])],
+        'view' => ['nullable', Rule::in(['grid', 'list'])],
+        'page' => ['nullable', 'integer', 'min:1'],
+    ]);
+
+    return view('products.index', [
+        'categories' => config('product_categories'),
+        'filters' => $filters,
+    ]);
+})->name('products.index');
