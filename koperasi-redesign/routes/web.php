@@ -33,6 +33,12 @@ Route::get('/', function () {
     return view('welcome', compact('categories', 'news'));
 })->name('home');
 
+Route::get('/tentang-kami', function () {
+    return view('about.index', [
+        'organization' => config('organization'),
+    ]);
+})->name('about');
+
 Route::get('/produk', function () {
     $categorySlugs = array_column(config('product_categories'), 'slug');
     $filters = request()->validate([

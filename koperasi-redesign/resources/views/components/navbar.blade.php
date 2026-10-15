@@ -9,7 +9,8 @@
         <nav class="nav-links" id="primary-navigation" aria-label="Navigasi utama">
             <a class="nav-link {{ request()->routeIs('home') ? 'nav-link--active' : '' }}"
                 href="{{ route('home') }}#beranda" @if (request()->routeIs('home')) aria-current="page" @endif>Beranda</a>
-            <a class="nav-link" href="{{ route('home') }}#footer">Tentang</a>
+            <a class="nav-link {{ request()->routeIs('about') ? 'nav-link--active' : '' }}"
+                href="{{ route('about') }}" @if (request()->routeIs('about')) aria-current="page" @endif>Tentang</a>
             <a class="nav-link" href="{{ route('home') }}#berita">Berita</a>
             <a class="nav-link {{ request()->routeIs('products.index') ? 'nav-link--active' : '' }}"
                 href="{{ route('products.index') }}" @if (request()->routeIs('products.index')) aria-current="page" @endif>Produk</a>

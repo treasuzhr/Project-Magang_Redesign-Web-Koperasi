@@ -15,7 +15,7 @@
                         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 4h2l2.1 10.1a2 2 0 0 0 2 1.6h8.8a2 2 0 0 0 1.9-1.4L22 8H6M10 20a1 1 0 1 1-2 0 1 1 0 0 1 2 0Zm9 0a1 1 0 1 1-2 0 1 1 0 0 1 2 0Z"/></svg>
                         Belanja Sekarang
                     </a>
-                    <a class="button button--secondary" href="#footer">Tentang Kami</a>
+                    <a class="button button--secondary" href="{{ route('about') }}">Tentang Kami</a>
                 </div>
             </div>
         </section>

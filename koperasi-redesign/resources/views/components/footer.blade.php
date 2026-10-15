@@ -18,7 +18,7 @@
             <a href="{{ route('home') }}#beranda">Beranda</a>
             <a href="{{ route('products.index') }}">Produk</a>
             <a href="{{ route('home') }}#berita">Berita</a>
-            <a href="{{ route('home') }}#footer">Tentang Kami</a>
+            <a href="{{ route('about') }}">Tentang Kami</a>
             <a href="{{ route('home') }}#kontak">Kontak</a>
         </div>
         <div class="footer-column">
