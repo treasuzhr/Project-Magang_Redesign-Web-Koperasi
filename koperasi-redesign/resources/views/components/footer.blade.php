@@ -16,10 +16,9 @@
         <div class="footer-column">
             <h2>Navigasi</h2>
             <a href="{{ route('home') }}#beranda">Beranda</a>
-            <a href="{{ route('products.index') }}">Produk</a>
-            <a href="{{ route('home') }}#berita">Berita</a>
             <a href="{{ route('about') }}">Tentang Kami</a>
-            <a href="{{ route('home') }}#kontak">Kontak</a>
+            <a href="{{ route('home') }}#kategori">Kategori Produk</a>
+            <a href="{{ route('news.index') }}">Berita</a>
         </div>
         <div class="footer-column">
             <h2>Layanan Anggota</h2>

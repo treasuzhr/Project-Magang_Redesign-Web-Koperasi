@@ -55,7 +55,7 @@
         <section class="news-section section" id="berita" aria-labelledby="news-title">
             <div class="page-width">
                 <x-section-heading eyebrow="Terkini" title="Berita & Informasi" id="news-title">
-                    <a class="text-link" href="#berita">Semua berita <span aria-hidden="true">→</span></a>
+                    <a class="text-link" href="{{ route('news.index') }}">Semua berita <span aria-hidden="true">→</span></a>
                 </x-section-heading>
                 <div class="news-grid">
                     @foreach ($news as $article)

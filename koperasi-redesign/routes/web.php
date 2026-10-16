@@ -5,33 +5,25 @@ use Illuminate\Validation\Rule;
 
 Route::get('/', function () {
     $categories = config('product_categories');
-
-    $news = [
-        [
-            'title' => 'Layanan Primkop Pullahta Hankam',
-            'date' => '01 Februari 2026',
-            'datetime' => '2026-02-01',
-            'excerpt' => 'Layanan inti yang membumi. Tulang punggung Primkop adalah layanan simpan dan pinjam. Di sisi simpan...',
-            'image' => 'assets/images/news/berita-1.jpg',
-        ],
-        [
-            'title' => 'Keanggotaan, Manfaat, dan Kewajiban',
-            'date' => '01 Februari 2026',
-            'datetime' => '2026-02-01',
-            'excerpt' => 'Hingga 31 Desember 2024, Primkop mencatat 160 anggota aktif semula 157 anggota pada akhir 2023, dengan...',
-            'image' => 'assets/images/news/berita-2.png',
-        ],
-        [
-            'title' => 'Rumah Kesejahteraan dan Gotong Royong',
-            'date' => '01 Februari 2026',
-            'datetime' => '2026-02-01',
-            'excerpt' => 'Di lingkungan Pusdatin Kemhan, koperasi bukan sekadar unit usaha, melainkan rumah bagi semangat...',
-            'image' => 'assets/images/news/berita-3.jpg',
-        ],
-    ];
+    $news = config('news.articles');
 
     return view('welcome', compact('categories', 'news'));
 })->name('home');
+
+Route::get('/berita', function () {
+    return view('news.index', [
+        'featured' => config('news.featured'),
+        'articles' => config('news.articles'),
+    ]);
+})->name('news.index');
+
+Route::get('/berita/{slug}', function (string $slug) {
+    $article = collect(config('news.articles'))->firstWhere('slug', $slug);
+
+    abort_if($article === null, 404);
+
+    return view('news.show', compact('article'));
+})->where('slug', 'layanan-primkop-pullahta-hankam')->name('news.show');
 
 Route::get('/tentang-kami', function () {
     return view('about.index', [

@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="theme-color" content="#7fad39">
-    <meta name="description" content="Temukan produk dan informasi Primkop Pullahta Hankam, Pusdatin Kemhan.">
+    <meta name="description" content="@yield('description', 'Temukan produk dan informasi Primkop Pullahta Hankam, Pusdatin Kemhan.')">
     <title>@yield('title', 'Primkop Pullahta Hankam | Koperasi Pusdatin Kemhan')</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>

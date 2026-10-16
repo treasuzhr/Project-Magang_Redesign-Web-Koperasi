@@ -5,7 +5,7 @@ return [
         'slug' => 'atk-perlengkapan-kantor',
         'name' => 'ATK & Perlengkapan Kantor',
         'description' => 'Alat tulis dan kebutuhan kantor',
-        'image' => null,
+        'image' => 'assets/images/categories/ATK & Perlengkapan Kantor.jpg',
     ],
     [
         'slug' => 'kebersihan-rumah',
@@ -23,7 +23,7 @@ return [
         'slug' => 'kesehatan-obat-obatan',
         'name' => 'Kesehatan & Obat-obatan',
         'description' => 'Produk kesehatan dan obat-obatan',
-        'image' => null,
+        'image' => 'assets/images/categories/Kesehatan & Obat-obatan.jpg',
     ],
     [
         'slug' => 'sembako',
@@ -47,7 +47,7 @@ return [
         'slug' => 'pakaian-perlengkapan-rumah',
         'name' => 'Pakaian & Perlengkapan Rumah',
         'description' => 'Pakaian dan produk tekstil rumah',
-        'image' => null,
+        'image' => 'assets/images/categories/Pakaian & Perlengkapan Rumah.jpg',
     ],
     [
         'slug' => 'rokok',

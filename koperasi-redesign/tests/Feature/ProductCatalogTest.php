@@ -28,7 +28,10 @@ class ProductCatalogTest extends TestCase
             ->assertSee('id="category-track"', false)
             ->assertSee('data-category-direction="previous"', false)
             ->assertSee('data-category-direction="next"', false)
-            ->assertSee('category-card__image--placeholder')
+            ->assertSee('assets/images/categories/ATK & Perlengkapan Kantor.jpg')
+            ->assertSee('assets/images/categories/Kesehatan & Obat-obatan.jpg')
+            ->assertSee('assets/images/categories/Pakaian & Perlengkapan Rumah.jpg')
+            ->assertDontSee('category-card__image--placeholder')
             ->assertDontSee('Gambar kategori belum tersedia');
 
         $response->assertDontSee('class="nav-link" href="' . route('home') . '#kontak"', false);
