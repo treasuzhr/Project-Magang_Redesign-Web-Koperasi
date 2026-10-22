@@ -13,14 +13,14 @@
             </address>
             <a class="footer-phone" href="tel:3215"><span class="footer-icon" aria-hidden="true">☎</span> Telepon: 3215</a>
         </div>
-        <div class="footer-column">
+        <div class="footer-column" data-footer-reveal>
             <h2>Navigasi</h2>
             <a href="{{ route('home') }}#beranda">Beranda</a>
             <a href="{{ route('about') }}">Tentang Kami</a>
             <a href="{{ route('home') }}#kategori">Kategori Produk</a>
             <a href="{{ route('news.index') }}">Berita</a>
         </div>
-        <div class="footer-column">
+        <div class="footer-column" data-footer-reveal>
             <h2>Layanan Anggota</h2>
             <span>Dashboard</span>
             <span>Simpanan</span>
@@ -34,4 +34,5 @@
         <p>2021 © Pusdatin, Kementerian Pertahanan Republik Indonesia</p>
         <div><a href="#footer">Kebijakan Privasi</a><a href="#footer">Syarat &amp; Ketentuan</a></div>
     </div>
+    <span class="footer-wordmark" aria-hidden="true">PRIMKOP</span>
 </footer>

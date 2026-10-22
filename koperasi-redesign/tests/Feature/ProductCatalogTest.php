@@ -6,7 +6,7 @@ use Tests\TestCase;
 
 class ProductCatalogTest extends TestCase
 {
-    public function test_homepage_displays_all_nine_categories_in_a_carousel(): void
+    public function test_homepage_displays_all_nine_categories_in_a_showcase(): void
     {
         $response = $this->get('/');
 
@@ -23,18 +23,44 @@ class ProductCatalogTest extends TestCase
                 'Rokok',
             ], false)
             ->assertSee('Produk')
-            ->assertSee('class="nav-search" method="GET" action="' . route('products.index') . '"', false)
+            ->assertSee('class="nav-search" method="GET" action="'.route('products.index').'"', false)
             ->assertSee('placeholder="Cari produk..."', false)
-            ->assertSee('id="category-track"', false)
-            ->assertSee('data-category-direction="previous"', false)
-            ->assertSee('data-category-direction="next"', false)
+            ->assertSee('data-category-showcase', false)
+            ->assertSee('role="tablist"', false)
+            ->assertSee('data-category-segment="8"', false)
+            ->assertSee(' / 09', false)
+            ->assertSee('data-category-mobile-link', false)
+            ->assertSee('category-showcase__preview')
+            ->assertDontSee('Arahkan kursor ke kategori untuk melihat pratinjaunya.')
+            ->assertDontSee('data-scroll-statement', false)
+            ->assertDontSee('Gulir untuk mengenal Primkop')
+            ->assertDontSee('Gulir untuk melihat apa saja yang bisa Anda lakukan sebagai anggota.')
+            ->assertDontSee('home-about__seal', false)
+            ->assertSee('data-count-up', false)
+            ->assertSee('id="layanan-anggota"', false)
+            ->assertSee('Satu situs,', false)
+            ->assertSee('Simpanan yang bisa Anda pantau')
+            ->assertSee('Pinjaman dengan simulasi di depan')
+            ->assertSee('SHU dari tahun ke tahun')
+            ->assertSee('Belanja dari meja kerja')
+            ->assertSee('id="home-about-title"', false)
+            ->assertSee('id="news-title"', false)
+            ->assertSee('home-news-feature')
+            ->assertSee('home-news-feature__latest')
+            ->assertDontSee('menit baca')
+            ->assertSee('home-news-list')
+            ->assertDontSee('Kembali ke atas')
+            ->assertSee('Sudah jadi anggota?')
+            ->assertSee('anggota aktif per 31 Desember 2024')
+            ->assertDontSee('200+')
             ->assertSee('assets/images/categories/ATK & Perlengkapan Kantor.jpg')
             ->assertSee('assets/images/categories/Kesehatan & Obat-obatan.jpg')
             ->assertSee('assets/images/categories/Pakaian & Perlengkapan Rumah.jpg')
             ->assertDontSee('category-card__image--placeholder')
             ->assertDontSee('Gambar kategori belum tersedia');
 
-        $response->assertDontSee('class="nav-link" href="' . route('home') . '#kontak"', false);
+        $this->assertSame(4, substr_count($response->getContent(), 'class="service-card service-card--'));
+        $response->assertDontSee('class="nav-link" href="'.route('home').'#kontak"', false);
     }
 
     public function test_public_catalog_shows_search_and_preserves_supported_filter_inputs(): void
@@ -59,7 +85,7 @@ class ProductCatalogTest extends TestCase
     {
         $this->get('/produk?q=beras')
             ->assertOk()
-            ->assertSee('action="' . route('products.index') . '"', false)
+            ->assertSee('action="'.route('products.index').'"', false)
             ->assertSee('name="q"', false)
             ->assertSee('value="beras"', false);
     }
