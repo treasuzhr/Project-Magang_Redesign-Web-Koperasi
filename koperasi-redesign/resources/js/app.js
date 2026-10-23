@@ -39,6 +39,73 @@ if (menuToggle && navigation) {
 
 const siteHeader = document.querySelector('.site-header');
 
+const contactMap = document.querySelector('[data-contact-map]');
+
+if (contactMap) {
+    const overlay = contactMap.querySelector('.contact-location__overlay');
+    const mapFrame = contactMap.querySelector('iframe');
+    const activateButton = contactMap.querySelector('[data-map-activate]');
+    const closeButton = contactMap.querySelector('[data-map-close]');
+    const hoverPointer = window.matchMedia('(hover: hover) and (pointer: fine)');
+
+    const setMapActive = (active) => {
+        contactMap.classList.toggle('is-map-active', active);
+        overlay.inert = active;
+        mapFrame.tabIndex = active ? 0 : -1;
+        activateButton.setAttribute('aria-expanded', String(active));
+        closeButton.hidden = !active;
+    };
+
+    contactMap.addEventListener('pointerenter', () => {
+        if (hoverPointer.matches) {
+            setMapActive(true);
+        }
+    });
+
+    contactMap.addEventListener('pointerleave', () => {
+        if (hoverPointer.matches) {
+            setMapActive(false);
+        }
+    });
+
+    activateButton.addEventListener('click', () => {
+        setMapActive(true);
+        closeButton.focus({ preventScroll: true });
+    });
+
+    closeButton.addEventListener('click', () => {
+        setMapActive(false);
+        activateButton.focus({ preventScroll: true });
+    });
+
+    hoverPointer.addEventListener('change', () => setMapActive(false));
+
+    document.addEventListener('pointerdown', (event) => {
+        if (!contactMap.contains(event.target)) {
+            setMapActive(false);
+        }
+    });
+
+    contactMap.addEventListener('focusin', () => {
+        if (hoverPointer.matches) {
+            setMapActive(true);
+        }
+    });
+    contactMap.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape') {
+            setMapActive(false);
+            if (!hoverPointer.matches) {
+                activateButton.focus({ preventScroll: true });
+            }
+        }
+    });
+    contactMap.addEventListener('focusout', (event) => {
+        if (!contactMap.contains(event.relatedTarget) && !contactMap.matches(':hover')) {
+            setMapActive(false);
+        }
+    });
+}
+
 if (siteHeader) {
     const updateHeader = () => {
         siteHeader.classList.toggle('is-sticky', window.scrollY > 12);

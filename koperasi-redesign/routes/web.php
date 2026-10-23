@@ -31,6 +31,8 @@ Route::get('/tentang-kami', function () {
     ]);
 })->name('about');
 
+Route::view('/kontak', 'contact.index')->name('contact');
+
 Route::get('/produk', function () {
     $categorySlugs = array_column(config('product_categories'), 'slug');
     $filters = request()->validate([

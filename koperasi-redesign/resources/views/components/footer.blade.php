@@ -19,6 +19,7 @@
             <a href="{{ route('about') }}">Tentang Kami</a>
             <a href="{{ route('home') }}#kategori">Kategori Produk</a>
             <a href="{{ route('news.index') }}">Berita</a>
+            <a href="{{ route('contact') }}">Kontak</a>
         </div>
         <div class="footer-column" data-footer-reveal>
             <h2>Layanan Anggota</h2>

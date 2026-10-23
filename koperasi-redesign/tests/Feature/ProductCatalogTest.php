@@ -23,8 +23,8 @@ class ProductCatalogTest extends TestCase
                 'Rokok',
             ], false)
             ->assertSee('Produk')
-            ->assertSee('class="nav-search" method="GET" action="'.route('products.index').'"', false)
-            ->assertSee('placeholder="Cari produk..."', false)
+            ->assertDontSee('class="nav-search"', false)
+            ->assertSee('href="'.route('products.index').'"', false)
             ->assertSee('data-category-showcase', false)
             ->assertSee('role="tablist"', false)
             ->assertSee('data-category-segment="8"', false)
@@ -81,12 +81,13 @@ class ProductCatalogTest extends TestCase
             ->assertSee('Produk');
     }
 
-    public function test_navbar_search_keeps_the_query_and_opens_the_public_catalog(): void
+    public function test_catalog_search_keeps_the_query(): void
     {
         $this->get('/produk?q=beras')
             ->assertOk()
             ->assertSee('action="'.route('products.index').'"', false)
             ->assertSee('name="q"', false)
+            ->assertDontSee('class="nav-search"', false)
             ->assertSee('value="beras"', false);
     }
 
