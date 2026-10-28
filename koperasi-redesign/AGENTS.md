@@ -129,3 +129,12 @@ Before relying on a package's API, confirm its installed version:
 - Run `vendor/bin/phpunit` to call the test runner directly. It accepts the same file path and `--filter=testName` arguments.
 
 </laravel-boost-guidelines>
+
+## Content rules from the project owner
+
+- Apply to every page: only publish content from the original cooperative website or supplied by the project owner. Existing repository text is not proof of an official source.
+- Do not invent vision, mission, history, mottos, testimonials, figures, email addresses, or other factual/marketing copy.
+- When required content has no source, omit the section or show a contextual empty-state label, such as `Nominal angsuran belum tersedia.` or `Data SHU belum tersedia.` Never display a generic TODO to visitors; keep TODO notes in code comments only.
+- The About page has no Vision or Mission section. Its order is Header (profile and short facts), Organization, then Contact invitation. This supersedes earlier design instructions.
+- Preserve the original names, positions, photos, and reporting relationships of all organization members.
+- Owner clarification: preserve the existing Beranda content and illustrations as they were before the content cleanup; do not rewrite that approved design as part of the cleanup. The About page must still omit Vision and Mission. New factual content elsewhere still requires a source.

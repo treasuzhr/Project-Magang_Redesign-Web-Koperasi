@@ -13,11 +13,6 @@
         <section class="hero home-hero" id="beranda" aria-labelledby="hero-title">
             <div class="hero__image" aria-hidden="true">
                 <img src="{{ asset('assets/images/hero/hero-utama.jpg') }}" alt="">
-                <div class="home-hero__ambient">
-                    <span class="home-hero__blob home-hero__blob--one"></span>
-                    <span class="home-hero__blob home-hero__blob--two"></span>
-                    <span class="home-hero__light"></span>
-                </div>
             </div>
             <div class="hero__content page-width">
                 <p class="eyebrow-pill"><span></span> Koperasi Pusdatin Kemhan · Berdiri sejak 1989</p>
@@ -25,7 +20,7 @@
                 <p class="hero__description">Mengenal koperasi yang melayani anggota di lingkungan Pusdatin Kemhan.</p>
                 <div class="hero__actions">
                     <a class="button button--primary" href="#kategori">
-                        Jelajahi kategori <span aria-hidden="true">↗</span>
+                        Jelajahi kategori
                     </a>
                     <a class="button button--secondary" href="{{ route('about') }}">Tentang Primkop</a>
                 </div>
@@ -129,9 +124,9 @@
                         <div class="service-visual service-visual--shop" aria-label="Pratinjau katalog produk">
                             <div class="shop-preview">
                                 <span class="shop-preview__eyebrow">Def.MART · Katalog</span>
-                                <div><i aria-hidden="true"></i><span>Kebutuhan kantor</span><b aria-hidden="true">↗</b></div>
-                                <div><i aria-hidden="true"></i><span>Kebutuhan harian</span><b aria-hidden="true">↗</b></div>
-                                <a href="{{ route('products.index') }}">Jelajahi produk <span aria-hidden="true">↗</span></a>
+                                <div><i aria-hidden="true"></i><span>Kebutuhan kantor</span></div>
+                                <div><i aria-hidden="true"></i><span>Kebutuhan harian</span></div>
+                                <a href="{{ route('products.index') }}">Jelajahi produk</a>
                             </div>
                         </div>
                     </x-landing.service-card>
@@ -154,7 +149,7 @@
                         Berdiri pada 23 Januari 1989, Primkop Pullahta Hankam melayani anggota aktif di lingkungan Pusdatin Kemhan.
                         Unit tokonya, Def.MART, menyediakan kebutuhan kantor dan kebutuhan harian.
                     </p>
-                    <a class="home-text-link home-about__stagger" href="{{ route('about') }}">Kenali Primkop lebih dekat <span aria-hidden="true">↗</span></a>
+                    <a class="button button--primary home-about__stagger" href="{{ route('about') }}">Kenali Primkop lebih dekat</a>
                 </div>
             </div>
         </section>
@@ -165,7 +160,7 @@
                     <p class="section-eyebrow">Kabar Primkop</p>
                     <h2 id="news-title">Cerita dan informasi<br><span>terbaru.</span></h2>
                 </div>
-                <a class="home-text-link" href="{{ route('news.index') }}">Semua berita <span aria-hidden="true">↗</span></a>
+                <a class="home-text-link" href="{{ route('news.index') }}">Semua berita</a>
             </div>
 
             @if ($featuredNews)
@@ -200,7 +195,7 @@
                                 </a>
                             </h3>
                             <p>{{ $featuredNews['excerpt'] }}</p>
-                            <a class="home-news-feature__link" href="{{ $featuredNewsUrl }}">Baca ceritanya <span aria-hidden="true">↗</span></a>
+                            <a class="home-news-feature__link" href="{{ $featuredNewsUrl }}">Baca ceritanya</a>
                         </div>
                     </article>
 
@@ -221,7 +216,7 @@
                 <p class="section-eyebrow">Layanan anggota</p>
                 <h2 id="home-join-title">Sudah jadi anggota?<br><span>Masuk dan lihat buku simpanan Anda.</span></h2>
             </div>
-            <a class="button button--primary home-join__button" href="{{ url('/login') }}">Masuk anggota <span aria-hidden="true">↗</span></a>
+            <a class="button button--primary home-join__button" href="{{ url('/login') }}">Masuk anggota</a>
             <span class="home-join__light" aria-hidden="true"></span>
         </section>
     </main>

@@ -2,9 +2,10 @@
 
 return [
     'featured' => [
-        'title' => 'Kegiatan Pengecekan Stok Barang di Primkop',
-        'excerpt' => 'Tim Primkop melakukan pengecekan stok barang dan kelengkapan produk di unit usaha, guna memastikan ketersediaan kebutuhan anggota.',
-        'image' => 'assets/images/hero/hero-utama.jpg',
+        'title' => 'Layanan Primkop Pullahta Hankam',
+        'excerpt' => 'Tulang punggung Primkop adalah layanan simpan dan pinjam.',
+        'image' => 'assets/images/news/berita-1.jpg',
+        'slug' => 'layanan-primkop-pullahta-hankam',
     ],
     'articles' => [
         [
@@ -12,9 +13,9 @@ return [
             'title' => 'Layanan Primkop Pullahta Hankam',
             'date' => '01 Februari 2026',
             'datetime' => '2026-02-01',
-            'excerpt' => 'Layanan inti yang membumi. Tulang punggung Primkop adalah layanan simpan dan pinjam. Di sisi simpan...',
+            'excerpt' => 'Tulang punggung Primkop adalah layanan simpan dan pinjam.',
             'image' => 'assets/images/news/berita-1.jpg',
-            'detail_image' => 'assets/images/news/berita-1.png',
+            'detail_image' => 'assets/images/news/berita-1.jpg',
             'author' => 'Admin',
             'author_role' => 'Admin Berita',
             'sections' => [
@@ -37,14 +38,14 @@ return [
             'title' => 'Keanggotaan, Manfaat, dan Kewajiban',
             'date' => '01 Februari 2026',
             'datetime' => '2026-02-01',
-            'excerpt' => 'Hingga 31 Desember 2024, Primkop mencatat 160 anggota aktif semula 157 anggota pada akhir 2023, dengan...',
+            'excerpt' => 'Hingga 31 Desember 2024, Primkop mencatat 160 anggota aktif semula 157 anggota pada akhir 2023, dengan',
             'image' => 'assets/images/news/berita-2.png',
         ],
         [
             'title' => 'Rumah Kesejahteraan dan Gotong Royong',
             'date' => '01 Februari 2026',
             'datetime' => '2026-02-01',
-            'excerpt' => 'Di lingkungan Pusdatin Kemhan, koperasi bukan sekadar unit usaha, melainkan rumah bagi semangat...',
+            'excerpt' => 'Di lingkungan Pusdatin Kemhan, koperasi bukan sekadar unit usaha, melainkan rumah bagi semangat',
             'image' => 'assets/images/news/berita-3.jpg',
         ],
     ],

@@ -16,6 +16,6 @@
             <h3>{{ $category['name'] }}</h3>
             <p>{{ $category['description'] }}</p>
         </div>
-        <span class="category-card__arrow" aria-hidden="true">↗</span>
+
     </div>
 </a>

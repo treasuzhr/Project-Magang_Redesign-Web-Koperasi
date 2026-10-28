@@ -6,6 +6,25 @@ use Tests\TestCase;
 
 class ProductCatalogTest extends TestCase
 {
+    public function test_category_product_details_only_render_when_provided(): void
+    {
+        $this->get('/')->assertOk()->assertDontSee('class="category-showcase__sample"', false);
+
+        $categories = config('product_categories');
+        $categories[0]['products_count'] = 12;
+        $categories[0]['products'] = [
+            ['name' => 'Produk pengujian', 'price' => 1500, 'url' => '/produk?q=pengujian'],
+            ['name' => 'Produk tanpa tautan', 'price' => 2000],
+        ];
+        config(['product_categories' => $categories]);
+
+        $this->get('/')->assertOk()
+            ->assertSee('12 produk')
+            ->assertSee('Produk pengujian')
+            ->assertSee('Rp 1.500')
+            ->assertDontSee('Produk tanpa tautan');
+    }
+
     public function test_homepage_displays_all_nine_categories_in_a_showcase(): void
     {
         $response = $this->get('/');
@@ -31,7 +50,7 @@ class ProductCatalogTest extends TestCase
             ->assertSee(' / 09', false)
             ->assertSee('data-category-mobile-link', false)
             ->assertSee('category-showcase__preview')
-            ->assertDontSee('Arahkan kursor ke kategori untuk melihat pratinjaunya.')
+            ->assertSee('Arahkan kursor ke kategori untuk melihat pratinjaunya.')
             ->assertDontSee('data-scroll-statement', false)
             ->assertDontSee('Gulir untuk mengenal Primkop')
             ->assertDontSee('Gulir untuk melihat apa saja yang bisa Anda lakukan sebagai anggota.')

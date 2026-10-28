@@ -6,7 +6,7 @@ use Tests\TestCase;
 
 class AboutPageTest extends TestCase
 {
-    public function test_about_page_renders_the_complete_organization_chart_in_reference_order(): void
+    public function test_about_page_renders_all_people_in_their_card_groups(): void
     {
         $response = $this->get('/tentang-kami');
         $people = $this->flattenPeople(config('organization'));
@@ -14,31 +14,78 @@ class AboutPageTest extends TestCase
         $response->assertOk()
             ->assertSee('Tentang Kami')
             ->assertSee('Struktur Pengurus Koperasi')
+            ->assertDontSee('vision-title', false)
+            ->assertDontSee('mission-title', false)
+            ->assertDontSee('Menjadi koperasi yang mandiri, modern, dan terpercaya')
+            ->assertSeeInOrder(['class="about-overview"', 'data-organization', 'id="about-contact-title"'], false)
             ->assertSee('Melapor kepada')
             ->assertSee('Bayu Istanto Gunawan Utomo, S.E.')
             ->assertSee('Akhmad Kosim, S.H.')
             ->assertSee('Marah Alam Tanjung, S.Kom., M.MT., M.Sc.');
 
         $response->assertSeeInOrder([
-            'Isam Adi, S.Sos., M.M.',
-            'Bayu Istanto Gunawan Utomo, S.E.',
-            'Akhmad Kosim, S.H.',
-            'Fadil Armansyah, S.T., M.M.S.I.',
-            'Gandung Purnomoaji, A.Md.Ak.',
-            'Dwi Utami, S.M.',
-            'Heribertus Sigit Prasetya, S.Kom.',
-            'Dewi Ratri Teheranda, A.Md.',
-            'Lusy Tri Afzami, S.T.',
-            'Hidayatullah Suryaputra, S.Kom.',
-            'Marah Alam Tanjung, S.Kom., M.MT., M.Sc.',
-            'Thia Karmila, S.A.P., M.Si.',
-            'Anggraeni Tri Windyastuti, S.Kom.',
-        ]);
+            'data-person-id="isam-adi"',
+            'data-person-id="bayu-istanto-gunawan-utomo"',
+            'data-person-id="akhmad-kosim"',
+            'data-person-id="fadil-armansyah"',
+            'data-person-id="gandung-purnomoaji"',
+            'data-person-id="dwi-utami"',
+            'data-person-id="marah-alam-tanjung"',
+            'data-person-id="thia-karmila"',
+            'data-person-id="anggraeni-tri-windyastuti"',
+            'data-person-id="heribertus-sigit-prasetya"',
+            'data-person-id="dewi-ratri-teheranda"',
+            'data-person-id="lusy-tri-afzami"',
+            'data-person-id="hidayatullah-suryaputra"',
+        ], false);
 
         $this->assertCount(13, $people);
         $names = array_column($people, 'name');
         $this->assertCount(count($names), array_unique($names));
         $this->assertSame(13, substr_count($response->getContent(), 'class="org-person"'));
+        foreach ($people as $person) {
+            $this->assertSame(1, substr_count($response->getContent(), 'data-person-id="'.$person['id'].'"'));
+            $response->assertSee($person['name'])->assertSee($person['position']);
+        }
+    }
+
+    public function test_every_card_preserves_its_parent_and_photo(): void
+    {
+        $people = $this->flattenPeople(config('organization'));
+        $byName = array_column($people, null, 'name');
+        $html = $this->get('/tentang-kami')->assertOk()->getContent();
+        $document = new \DOMDocument;
+        @$document->loadHTML('<?xml encoding="UTF-8">'.$html);
+        $xpath = new \DOMXPath($document);
+
+        foreach ($people as $person) {
+            $card = $xpath->query('//*[@data-person-id="'.$person['id'].'"]')->item(0);
+            $this->assertNotNull($card);
+            $this->assertSame($person['reports_to'] ? $byName[$person['reports_to']]['id'] : '', $card->getAttribute('data-parent-id'));
+            $this->assertSame(asset($person['photo']), $xpath->query('.//img', $card)->item(0)->getAttribute('src'));
+            if ($person['reports_to']) {
+                $this->assertStringContainsString($person['reports_to'], $xpath->query('.//p[contains(@class,"org-person__report")]', $card)->item(0)->textContent);
+            }
+        }
+        foreach (['pembina' => 2, 'pengurus' => 7, 'unit' => 4] as $group => $count) {
+            $this->assertSame($count, $xpath->query('//*[@data-people-group="'.$group.'"]//*[@data-person-id]')->length);
+        }
+    }
+
+    public function test_missing_portrait_uses_initials_without_removing_the_person(): void
+    {
+        $organization = config('organization');
+        $organization['photo'] = 'assets/images/missing-portrait.png';
+        config(['organization' => $organization]);
+        $this->get('/tentang-kami')->assertOk()
+            ->assertSee('Isam Adi, S.Sos., M.M.')
+            ->assertSee('class="org-person__initials"', false)
+            ->assertDontSee('src="'.asset($organization['photo']).'"', false);
+    }
+
+    public function test_short_about_url_redirects_to_the_existing_page(): void
+    {
+        $this->get('/tentang')->assertRedirect('/tentang-kami');
     }
 
     public function test_chart_preserves_branch_counts_and_direct_reporting_lines(): void
@@ -92,11 +139,11 @@ class AboutPageTest extends TestCase
     {
         $this->get('/')
             ->assertOk()
-            ->assertSee('href="' . route('about') . '"', false);
+            ->assertSee('href="'.route('about').'"', false);
 
         $this->get('/tentang-kami')
             ->assertOk()
-            ->assertSee('href="' . route('about') . '"', false)
+            ->assertSee('href="'.route('about').'"', false)
             ->assertSee('aria-current="page"', false);
     }
 

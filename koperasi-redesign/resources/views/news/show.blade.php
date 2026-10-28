@@ -4,7 +4,8 @@
 @section('description', $article['excerpt'])
 
 @section('content')
-    <main class="news-article-page">
+    <div class="news-reading-progress" data-news-progress aria-hidden="true"></div>
+    <main class="news-article-page news-detail page-enter" data-news-page>
         <article class="news-article page-width">
             <nav class="news-article__breadcrumbs" aria-label="Breadcrumb">
                 <a href="{{ route('home') }}">Beranda</a>
@@ -16,41 +17,48 @@
 
             <header class="news-article__header">
                 <p class="news-article__eyebrow">BERITA</p>
-                <h1>{{ $article['title'] }}</h1>
+                <h1 data-words>{{ $article['title'] }}</h1>
                 <div class="news-article__meta">
                     <time datetime="{{ $article['datetime'] }}">{{ $article['date'] }}</time>
                     <span class="news-article__meta-divider" aria-hidden="true"></span>
-                    <span>{{ $article['author'] }} <span aria-hidden="true">—</span> {{ $article['author_role'] }}</span>
+                    <span>{{ $article['reading_minutes'] }} menit baca</span>
+                    @if (! empty($article['author']))
+                        <span>{{ $article['author'] }}@if (! empty($article['author_role'])) — {{ $article['author_role'] }}@endif</span>
+                    @endif
                 </div>
             </header>
 
-            <figure class="news-article__figure">
+            <figure class="news-article__figure" data-clip style="--r: 28px">
                 <img
-                    src="{{ asset($article['detail_image']) }}"
-                    alt="Layanan simpan pinjam dan unit usaha Primkop Pullahta Hankam"
+                    src="{{ asset($article['detail_image'] ?? $article['image']) }}"
+                    alt="{{ $article['title'] }}"
                     fetchpriority="high"
                 >
             </figure>
 
             <div class="news-article__body">
-                @foreach ($article['sections'] as $section)
+                @forelse ($article['sections'] ?? [] as $section)
                     <section aria-labelledby="article-section-{{ $loop->index }}">
                         <h2 id="article-section-{{ $loop->index }}">{{ $section['heading'] }}</h2>
                         @foreach ($section['paragraphs'] as $paragraph)
                             <p>{{ $paragraph }}</p>
                         @endforeach
                     </section>
-                @endforeach
+                @empty
+                    <p>{{ $article['excerpt'] }}</p>
+                @endforelse
             </div>
 
             <footer class="news-article__footer">
+                @if (! empty($article['author']))
                 <div class="news-article__author">
-                    <span class="news-article__avatar" aria-hidden="true">A</span>
+                    <span class="news-article__avatar" aria-hidden="true">{{ mb_substr($article['author'], 0, 1) }}</span>
                     <span class="news-article__author-copy">
                         <strong>{{ $article['author'] }}</strong>
-                        <span>{{ $article['author_role'] }}</span>
+                        @if (! empty($article['author_role']))<span>{{ $article['author_role'] }}</span>@endif
                     </span>
                 </div>
+                @endif
                 <div class="news-article__sharing" aria-label="Bagikan artikel">
                     <span>Bagikan</span>
                     <a
@@ -69,6 +77,17 @@
                     </a>
                 </div>
             </footer>
+            <a class="news-back-link" href="{{ route('news.index') }}"><span aria-hidden="true">←</span> Kembali ke berita</a>
         </article>
+        @if ($related->isNotEmpty())
+            <section class="news-related page-width" aria-labelledby="related-news-title">
+                <h2 id="related-news-title" data-words>Berita <span>lainnya</span></h2>
+                <div class="news-page__grid {{ $related->count() === 2 ? 'news-page__grid--pair' : '' }}" data-stagger="140">
+                    @foreach ($related as $relatedArticle)
+                        <x-news-card :article="$relatedArticle" :index="$loop->index" />
+                    @endforeach
+                </div>
+            </section>
+        @endif
     </main>
 @endsection

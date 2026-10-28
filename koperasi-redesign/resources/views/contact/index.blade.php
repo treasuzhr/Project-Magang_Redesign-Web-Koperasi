@@ -8,8 +8,7 @@
         <div class="page-width">
             <header class="contact-intro">
                 <p class="section-eyebrow">Kontak Primkop</p>
-                <h1>Mari terhubung,<br><span>kami siap membantu.</span></h1>
-                <p>Temukan informasi untuk menghubungi koperasi atau berkunjung langsung ke Primkop Pullahta Hankam.</p>
+                <h1>Kontak <span>Kami</span></h1>
             </header>
 
             <section class="contact-grid" aria-label="Informasi kontak dan lokasi">
@@ -20,12 +19,12 @@
                         <svg viewBox="0 0 24 24"><path d="M20 10c0 5-8 12-8 12S4 15 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="2.5"/></svg>
                     </span>
                     <p class="section-eyebrow">Kunjungi kami</p>
-                    <h2>Dekat dengan<br>keseharian anggota.</h2>
+                    <h2>Primkop Pullahta Hankam</h2>
                     <address>Jalan RS Fatmawati Nomor 1, RT 006/RW 006,<br>Pondok Labu, Cilandak, Jakarta Selatan,<br>DKI Jakarta 12450</address>
                     <button class="button button--primary contact-location__activate" type="button" data-map-activate aria-expanded="false">Jelajahi peta</button>
                     </div>
                     <button class="contact-location__close" type="button" data-map-close hidden>Tutup peta ×</button>
-                    <a class="contact-location__maps-link" href="https://maps.app.goo.gl/W6NsazYSRR4Tihu58" target="_blank" rel="noopener noreferrer">Buka di Google Maps ↗</a>
+                    <a class="contact-location__maps-link" href="https://maps.app.goo.gl/W6NsazYSRR4Tihu58" target="_blank" rel="noopener noreferrer">Buka di Google Maps</a>
                 </article>
 
                 <div class="contact-details">

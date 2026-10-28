@@ -35,5 +35,4 @@
         <p>2021 © Pusdatin, Kementerian Pertahanan Republik Indonesia</p>
         <div><a href="#footer">Kebijakan Privasi</a><a href="#footer">Syarat &amp; Ketentuan</a></div>
     </div>
-    <span class="footer-wordmark" aria-hidden="true">PRIMKOP</span>
 </footer>

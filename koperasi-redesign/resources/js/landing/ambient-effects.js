@@ -29,7 +29,7 @@ const addPointerGlow = (element, className, variablePrefix = 'cursor') => {
     });
 };
 
-addPointerGlow(document.querySelector('[data-cursor-glow]'), 'is-pointer-active');
+document.querySelectorAll('[data-cursor-glow]').forEach((element) => addPointerGlow(element, 'is-pointer-active'));
 
 const joinBlock = document.querySelector('.home-join');
 if (joinBlock && 'IntersectionObserver' in window) {

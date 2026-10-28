@@ -2,11 +2,12 @@ import './landing/about-effects.js';
 import './landing/ambient-effects.js';
 import './landing/category-showcase.js';
 import './landing/count-up.js';
-import './landing/hero-effects.js';
 import './landing/news-interactions.js';
-import './landing/reveal.js';
+import { initMotion } from './modules/motion.js';
 import './landing/scroll-statement.js';
 import './landing/service-stack.js';
+
+initMotion();
 
 const menuToggle = document.querySelector('.menu-toggle');
 const navigation = document.querySelector('#primary-navigation');
@@ -38,6 +39,40 @@ if (menuToggle && navigation) {
 }
 
 const siteHeader = document.querySelector('.site-header');
+
+if (navigation) {
+    const indicator = document.createElement('span');
+    indicator.className = 'nav-highlight';
+    indicator.ariaHidden = 'true';
+    navigation.prepend(indicator);
+    const activeLink = navigation.querySelector('[aria-current="page"]');
+    let highlightedLink = activeLink;
+    let highlightFrame = 0;
+    const positionHighlight = () => {
+        cancelAnimationFrame(highlightFrame);
+        highlightFrame = requestAnimationFrame(() => {
+            const visible = highlightedLink && getComputedStyle(navigation).display !== 'none';
+            indicator.style.opacity = visible ? '1' : '0';
+            if (visible) {
+                indicator.style.transform = `translate(${highlightedLink.offsetLeft}px, ${highlightedLink.offsetTop}px) scale(${highlightedLink.offsetWidth / 100}, ${highlightedLink.offsetHeight / 40})`;
+            }
+        });
+    };
+    navigation.querySelectorAll('a').forEach((link) => {
+        ['pointerenter', 'focus'].forEach((event) => link.addEventListener(event, () => {
+            highlightedLink = link;
+            positionHighlight();
+        }, { passive: true }));
+    });
+    const resetHighlight = () => { highlightedLink = activeLink; positionHighlight(); };
+    navigation.addEventListener('pointerleave', resetHighlight, { passive: true });
+    navigation.addEventListener('focusout', (event) => {
+        if (!navigation.contains(event.relatedTarget)) resetHighlight();
+    });
+    new ResizeObserver(positionHighlight).observe(navigation);
+    document.fonts.ready.then(positionHighlight);
+    positionHighlight();
+}
 
 const contactMap = document.querySelector('[data-contact-map]');
 
@@ -107,10 +142,32 @@ if (contactMap) {
 }
 
 if (siteHeader) {
+    let headerFrame = 0;
+    let isSticky = window.scrollY > 32;
+    const navbar = siteHeader.querySelector('.navbar');
+    let navbarAnimation;
     const updateHeader = () => {
-        siteHeader.classList.toggle('is-sticky', window.scrollY > 12);
+        // Separate thresholds keep tiny scroll movements from reversing the animation.
+        const nextSticky = isSticky ? window.scrollY > 8 : window.scrollY > 32;
+        const changed = nextSticky !== siteHeader.classList.contains('is-sticky');
+        if (changed) navbarAnimation?.cancel();
+        const before = changed ? navbar.getBoundingClientRect() : null;
+        isSticky = nextSticky;
+        siteHeader.classList.toggle('is-sticky', isSticky);
+        if (before && matchMedia('(prefers-reduced-motion: no-preference)').matches) {
+            const after = navbar.getBoundingClientRect();
+            navbarAnimation = navbar.animate([
+                { transformOrigin: 'top left', transform: `translate(${before.left - after.left}px, ${before.top - after.top}px) scale(${before.width / after.width}, ${before.height / after.height})` },
+                { transformOrigin: 'top left', transform: 'none' },
+            ], { duration: 650, easing: 'cubic-bezier(.2,.8,.2,1)' });
+        }
+        headerFrame = 0;
     };
 
     updateHeader();
-    window.addEventListener('scroll', updateHeader, { passive: true });
+    window.addEventListener('scroll', () => {
+        if (!headerFrame) {
+            headerFrame = requestAnimationFrame(updateHeader);
+        }
+    }, { passive: true });
 }

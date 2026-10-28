@@ -24,21 +24,40 @@ class NewsArticlePageTest extends TestCase
             ->assertSee('Bagikan melalui WhatsApp')
             ->assertSee('Bagikan melalui email');
 
-        $response->assertSee(asset('assets/images/news/berita-1.png'), false)
-            ->assertSee('alt="Layanan simpan pinjam dan unit usaha Primkop Pullahta Hankam"', false);
+        $response->assertSee(asset('assets/images/news/berita-1.jpg'), false)
+            ->assertSee('alt="Layanan Primkop Pullahta Hankam"', false)
+            ->assertSee('menit baca')
+            ->assertSee('Kembali ke berita');
 
-        $this->assertFileExists(public_path('assets/images/news/berita-1.png'));
+        $this->assertFileExists(public_path('assets/images/news/berita-1.jpg'));
     }
 
     public function test_homepage_links_the_layanan_article_to_its_detail_page(): void
     {
         $this->get('/')
             ->assertOk()
-            ->assertSee('href="' . route('news.show', 'layanan-primkop-pullahta-hankam') . '"', false);
+            ->assertSee('href="'.route('news.show', 'layanan-primkop-pullahta-hankam').'"', false);
     }
 
     public function test_unknown_news_article_slug_returns_not_found(): void
     {
         $this->get('/berita/artikel-tidak-ada')->assertNotFound();
+    }
+
+    public function test_articles_without_full_content_do_not_receive_invented_authors_or_body(): void
+    {
+        $article = config('news.articles.1');
+        $this->get('/berita/keanggotaan-manfaat-dan-kewajiban')->assertOk()
+            ->assertSee($article['excerpt'])
+            ->assertDontSee('news-article__author', false)
+            ->assertDontSee('Admin Berita')
+            ->assertDontSee('article-section-0', false);
+    }
+
+    public function test_related_cards_exclude_the_current_article_and_are_limited_to_two(): void
+    {
+        $html = $this->get('/berita/layanan-primkop-pullahta-hankam')->assertOk()->getContent();
+        $this->assertSame(2, substr_count($html, 'class="news-card"'));
+        $this->assertStringNotContainsString('data-news-slug="layanan-primkop-pullahta-hankam"', $html);
     }
 }

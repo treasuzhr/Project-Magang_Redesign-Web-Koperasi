@@ -16,6 +16,6 @@
         </div>
         <h3><a href="{{ $articleUrl }}">{{ $article['title'] }}</a></h3>
         <p>{{ $article['excerpt'] }}</p>
-        <a class="landing-news-card__more" href="{{ $articleUrl }}">Baca selengkapnya <span aria-hidden="true">↗</span></a>
+        <a class="landing-news-card__more" href="{{ $articleUrl }}">Baca selengkapnya</a>
     </div>
 </article>
