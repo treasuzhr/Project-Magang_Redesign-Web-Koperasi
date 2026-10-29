@@ -1,5 +1,6 @@
 <?php
 
+use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Route;
@@ -86,3 +87,68 @@ Route::get('/produk', function () {
         'filters' => $filters,
     ]);
 })->name('products.index');
+
+Route::get('/login', function () {
+    if (session()->get('member.authenticated')) {
+        return redirect()->route('anggota.dashboard');
+    }
+
+    $left = random_int(2, 9);
+    $right = random_int(2, 9);
+    session()->put('captcha_answer', $left + $right);
+    session()->put('captcha_question', "$left + $right");
+
+    return view('login', ['captchaQuestion' => "$left + $right"]);
+})->name('login');
+
+Route::get('/login/captcha', function () {
+    $left = random_int(2, 9);
+    $right = random_int(2, 9);
+    $answer = $left + $right;
+
+    session()->put('captcha_answer', $answer);
+
+    return response()->json([
+        'question' => "$left + $right",
+    ]);
+})->name('login.captcha');
+
+Route::post('/login', function (Request $request) {
+    $request->validate([
+        'member_id' => ['required', 'string', 'max:255'],
+        'password' => ['required', 'string', 'min:4'],
+        'captcha' => ['required', 'numeric'],
+    ]);
+
+    $expected = (int) session('captcha_answer', 0);
+    $submitted = (int) $request->input('captcha');
+
+    if ($expected !== $submitted || $expected === 0) {
+        return back()->withErrors(['captcha' => 'Captcha tidak sesuai.'])->withInput();
+    }
+
+    $request->session()->regenerate();
+    $request->session()->put('member.authenticated', true);
+    $request->session()->put('member.id', trim((string) $request->input('member_id')));
+    $request->session()->put('member.name', 'Agus Wiji Suhariono');
+    $request->session()->forget('captcha_answer');
+    $request->session()->forget('captcha_question');
+
+    return redirect()->route('anggota.dashboard');
+})->name('login.submit');
+
+Route::get('/anggota', [App\Http\Controllers\AnggotaController::class, 'dashboard'])->name('anggota.dashboard');
+
+Route::get('/anggota/segera-hadir', function () {
+    return view('anggota.segera-hadir');
+})->name('anggota.soon');
+
+Route::post('/logout', function () {
+    auth()->logout();
+
+    request()->session()->invalidate();
+    request()->session()->regenerateToken();
+    request()->session()->forget(['member.authenticated', 'member.id', 'member.name', 'captcha_answer', 'captcha_question']);
+
+    return redirect('/');
+})->name('logout');
