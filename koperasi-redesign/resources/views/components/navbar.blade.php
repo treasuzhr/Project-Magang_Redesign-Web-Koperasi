@@ -19,7 +19,7 @@
                 href="{{ route('contact') }}" @if (request()->routeIs('contact')) aria-current="page" @endif>Kontak</a>
         </nav>
         <div class="nav-actions">
-            <a class="cart-link" href="{{ route('products.index') }}" aria-label="Jelajahi produk">
+            <a class="cart-link" href="{{ route('cart.index') }}" aria-label="Keranjang">
                 <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 4h2l2.1 10.1a2 2 0 0 0 2 1.6h8.8a2 2 0 0 0 1.9-1.4L22 8H6M10 20a1 1 0 1 1-2 0 1 1 0 0 1 2 0Zm9 0a1 1 0 1 1-2 0 1 1 0 0 1 2 0Z"/></svg>
             </a>
             <a class="button button--login" href="{{ url('/login') }}">Masuk</a>

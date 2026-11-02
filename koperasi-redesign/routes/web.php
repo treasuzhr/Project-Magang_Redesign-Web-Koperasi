@@ -1,10 +1,12 @@
 <?php
 
+use App\Http\Controllers\ProductController;
+use App\ProductDisplayName;
+use App\ProductSource;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Str;
-use Illuminate\Validation\Rule;
 
 $newsArticles = static function (): Collection {
     return collect(config('news.articles', []))->map(static function (array $article): array {
@@ -12,7 +14,7 @@ $newsArticles = static function (): Collection {
         $text = collect($article['sections'] ?? [])->flatMap(static fn (array $section): array => $section['paragraphs'] ?? [])->implode(' ');
         $text = $text ?: ($article['excerpt'] ?? '');
         $excerpt = trim($article['excerpt'] ?? '');
-        if ($excerpt === '' || preg_match('/(?:\.{3}|…)\s*$/u', $excerpt) || ! preg_match('/[.!?]["\x{201D}\x{2019}]?$/u', $excerpt)) {
+        if (! empty($article['sections']) || $excerpt === '' || preg_match('/(?:\.{3}|…)\s*$/u', $excerpt) || ! preg_match('/[.!?]["\x{201D}\x{2019}]?$/u', $excerpt)) {
             $source = trim(preg_replace('/\s+/u', ' ', strip_tags($text)));
             preg_match('/^.*?[.!?](?:\s|$)/u', $source, $sentence);
             $summary = $sentence[0] ?? $source;
@@ -52,7 +54,9 @@ Route::get('/berita/{slug}', function (string $slug) use ($newsArticles) {
     $articles = $newsArticles();
     $article = $articles->firstWhere('slug', $slug);
 
-    abort_if($article === null, 404);
+    if ($article === null) {
+        return response()->view('news.not-found', [], 404);
+    }
 
     $related = $articles->where('slug', '!=', $slug)->take(2)->values();
 
@@ -69,20 +73,21 @@ Route::redirect('/tentang', '/tentang-kami');
 
 Route::view('/kontak', 'contact.index')->name('contact');
 
-Route::get('/produk', function () {
-    $categorySlugs = array_column(config('product_categories'), 'slug');
-    $filters = request()->validate([
-        'q' => ['nullable', 'string', 'max:100'],
-        'category' => ['nullable', 'string', Rule::in($categorySlugs)],
-        'min_price' => ['nullable', 'numeric', 'min:0'],
-        'max_price' => ['nullable', 'numeric', 'min:0', 'gte:min_price'],
-        'sort' => ['nullable', Rule::in(['name_asc', 'name_desc', 'price_asc', 'price_desc'])],
-        'view' => ['nullable', Rule::in(['grid', 'list'])],
-        'page' => ['nullable', 'integer', 'min:1'],
-    ]);
+Route::get('/produk', ProductController::class)->name('products.index');
 
-    return view('products.index', [
-        'categories' => config('product_categories'),
-        'filters' => $filters,
-    ]);
-})->name('products.index');
+Route::get('/keranjang', function (ProductSource $source) {
+    $categoryLabels = array_column(config('product_categories', []), 'name', 'slug');
+    try {
+        $products = $source->all()->map(static fn (array $product): array => array_merge($product, [
+            'display_name' => ProductDisplayName::format($product['name']),
+            'category_label' => $categoryLabels[$product['category'] ?? ''] ?? null,
+        ]));
+        $sourceAvailable = true;
+    } catch (Throwable $exception) {
+        report($exception);
+        $products = collect();
+        $sourceAvailable = false;
+    }
+
+    return view('cart.index', compact('products', 'sourceAvailable'));
+})->name('cart.index');

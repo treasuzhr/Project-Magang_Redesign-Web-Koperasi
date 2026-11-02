@@ -27,21 +27,18 @@
                         <p>Koperasi Biro Pengumpulan dan Pengolahan Data Setjen Dephankam didirikan pada tanggal
                             23 Januari 1989 dan beralamatkan di Jl. RS. Fatmawati No. 1 Pondok Labu Cilandak
                             Kota Jakarta Selatan Daerah Khusus Ibukota Jakarta.</p>
-                        <p>Sektor Usaha Jasa Keuangan dan Asuransi. Saat ini Koperasi memiliki Status Grade A.</p>
+                        <p>Sektor Usaha Jasa Keuangan dan Asuransi.</p>
                     </div>
                 </header>
                 <figure class="about-portrait" data-about-visual>
                     <div class="about-portrait__crop" data-about-photo-reveal>
                         <img src="{{ asset('assets/images/news/berita-2.png') }}" alt="Toko Def.MART, unit usaha Primkop Pullahta Hankam" fetchpriority="high">
                     </div>
-
-                    <figcaption>Def.MART </figcaption>
                 </figure>
                 <dl class="about-facts home-reveal" aria-label="Informasi koperasi">
-                    <div class="about-fact"><dt>Didirikan</dt><dd>23 Jan <span data-count-up data-count-start="1900" data-count-end="1989" aria-label="1989">1989</span></dd></div>
-                    <div class="about-fact"><dt>Status</dt><dd>Grade <span>A</span></dd></div>
-                    <div class="about-fact"><dt>Jam Kerja</dt><dd>07:30 – 15:00</dd></div>
-                    <div class="about-fact"><dt>Telepon</dt><dd><a href="tel:3215"><span data-count-up data-count-start="3000" data-count-end="3215" aria-label="3215">3215</span></a></dd></div>
+                    <div class="about-fact"><dt>Didirikan</dt><dd><span class="about-fact__value">23 Jan 1989</span></dd></div>
+                    <div class="about-fact"><dt>Jam Kerja</dt><dd><span class="about-fact__value">07:30 - 15:00</span></dd></div>
+                    <div class="about-fact"><dt>Telepon</dt><dd><a class="about-fact__value" href="tel:3215">3215</a><small class="about-fact__note">Aktif di jam kerja</small></dd></div>
                 </dl>
             </section>
 

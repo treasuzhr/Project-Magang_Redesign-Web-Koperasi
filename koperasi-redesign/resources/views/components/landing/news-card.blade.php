@@ -1,9 +1,7 @@
 @props(['article', 'index' => 0])
 
 @php
-    $articleUrl = isset($article['slug'])
-        ? route('news.show', $article['slug'])
-        : route('news.index') . '#news-list';
+    $articleUrl = route('news.show', $article['slug'] ?? \Illuminate\Support\Str::slug($article['title']));
 @endphp
 
 <article class="landing-news-card" style="--news-card-delay: {{ $index * 120 }}ms">

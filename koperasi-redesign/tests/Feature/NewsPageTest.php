@@ -14,7 +14,7 @@ class NewsPageTest extends TestCase
         $response->assertOk()
             ->assertSee('Berita | Primkop Pullahta Hankam')
             ->assertDontSee('Kegiatan Pengecekan Stok Barang di Primkop')
-            ->assertSee('Tulang punggung Primkop adalah layanan simpan dan pinjam.')
+            ->assertSee('Tulang punggung Primkop adalah layanan simpan dan pinjam…')
             ->assertSee('Layanan Primkop Pullahta Hankam')
             ->assertSee('Keanggotaan, Manfaat, dan Kewajiban')
             ->assertSee('Rumah Kesejahteraan dan Gotong Royong')
@@ -23,7 +23,7 @@ class NewsPageTest extends TestCase
             ->assertSee('aria-current="page"', false);
 
         $this->assertSame(2, substr_count($response->getContent(), 'class="news-card"'));
-        $response->assertSee('TERBARU')->assertSee('menit baca')->assertSee('news-page__grid--pair', false);
+        $response->assertSee('TERBARU')->assertDontSee('menit baca')->assertSee('news-page__grid--pair', false);
         foreach (config('news.articles') as $article) {
             $slug = $article['slug'] ?? Str::slug($article['title']);
             $this->assertSame(1, substr_count($response->getContent(), 'data-news-slug="'.$slug.'"'));
@@ -96,7 +96,7 @@ class NewsPageTest extends TestCase
         $this->get('/berita')
             ->assertOk()
             ->assertSee('href="'.route('news.index').'"', false)
-            ->assertSee('href="'.route('home').'#kategori"', false)
+            ->assertSee('<a href="'.route('products.index').'">Produk</a>', false)
             ->assertSee('href="'.route('products.index').'"', false);
     }
 

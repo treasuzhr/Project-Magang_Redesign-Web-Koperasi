@@ -1,51 +1,45 @@
+import { calculateLoanPreview } from '../modules/loan-calculator.js';
+
 const stack = document.querySelector('.service-stack');
 
 if (stack) {
     const cards = [...stack.querySelectorAll('.service-card')];
     const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    const counter = stack.querySelector('[data-service-counter]');
     let currentCard = -1;
-    let counterStarted = false;
-
-    const animateLoanCounter = () => {
-        if (!counter || counterStarted) {
-            return;
-        }
-
-        counterStarted = true;
-        const end = Number(counter.dataset.countEnd);
-
-        if (reducedMotion) {
-            counter.textContent = String(end);
-            return;
-        }
-
-        const startedAt = performance.now();
-        const duration = 1200;
-        const update = (now) => {
-            const progress = Math.min(1, (now - startedAt) / duration);
-            const eased = 1 - ((1 - progress) ** 3);
-            counter.textContent = String(Math.round(end * eased));
-
-            if (progress < 1) {
-                requestAnimationFrame(update);
-            }
+    const preview = stack.querySelector('[data-loan-preview]');
+    if (preview) {
+        const amount = preview.querySelector('[data-loan-amount-input]');
+        const tenor = preview.querySelector('[data-loan-tenor-input]');
+        const money = value => `Rp ${new Intl.NumberFormat('id-ID').format(value)}`;
+        const updatePreview = () => {
+            const principal = Number(amount.value);
+            const months = Number(tenor.value);
+            const estimate = calculateLoanPreview(principal, months);
+            preview.querySelector('[data-loan-amount]').textContent = money(principal);
+            preview.querySelector('[data-loan-tenor]').textContent = `${months} bulan`;
+            preview.querySelector('[data-loan-payment]').textContent = money(estimate.monthlyPayment);
+            preview.querySelector('[data-loan-breakdown]').textContent = `Pokok ${money(estimate.monthlyPrincipal)} + bunga ${money(estimate.monthlyInterest)}`;
+            amount.setAttribute('aria-valuetext', money(principal));
+            tenor.setAttribute('aria-valuetext', `${months} bulan`);
+            [amount, tenor].forEach(input => {
+                const progress = (Number(input.value) - Number(input.min)) / (Number(input.max) - Number(input.min)) * 100;
+                input.style.setProperty('--range-progress', `${progress}%`);
+            });
         };
-
-        requestAnimationFrame(update);
-    };
+        [amount, tenor].forEach(input => {
+            input.disabled = false;
+            input.addEventListener('input', updatePreview);
+        });
+        updatePreview();
+    }
 
     if (reducedMotion || !('IntersectionObserver' in window)) {
         cards.forEach((card) => card.classList.add('inview'));
-        animateLoanCounter();
     } else {
         const observer = new IntersectionObserver((entries, currentObserver) => {
             entries.forEach((entry) => {
                 if (entry.isIntersecting) {
                     entry.target.classList.add('inview');
-                    if (entry.target === cards[1]) {
-                        animateLoanCounter();
-                    }
                     currentObserver.unobserve(entry.target);
                 }
             });
@@ -61,23 +55,8 @@ if (stack) {
             let nextCurrentCard = 0;
 
             cards.forEach((card, index) => {
-                const nextCard = cards[index + 1];
                 const rect = card.getBoundingClientRect();
                 const stickyTop = Number.parseFloat(getComputedStyle(card).top) || rect.top;
-
-                if (!nextCard) {
-                    card.style.removeProperty('--stack-progress');
-                } else {
-                    const nextRect = nextCard.getBoundingClientRect();
-                    const isStacking = rect.top <= stickyTop + 1;
-                    const progress = isStacking
-                        ? Math.min(1, Math.max(0, (rect.top + rect.height - nextRect.top) / rect.height))
-                        : 0;
-
-                    card.style.setProperty('--stack-progress', String(progress));
-                    card.style.setProperty('--card-scale', String(1 - (progress * 0.06)));
-                    card.style.setProperty('--card-brightness', String(1 - (progress * 0.1)));
-                }
 
                 if (rect.top <= stickyTop + 2) {
                     nextCurrentCard = index;

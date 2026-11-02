@@ -14,6 +14,10 @@ class AboutPageTest extends TestCase
         $response->assertOk()
             ->assertSee('Tentang Kami')
             ->assertSee('Struktur Pengurus Koperasi')
+            ->assertSee('Jasa Keuangan dan Asuransi')
+            ->assertSee('07:30 - 15:00')
+            ->assertSee('Aktif di jam kerja')
+            ->assertSee('href="tel:3215"', false)
             ->assertDontSee('vision-title', false)
             ->assertDontSee('mission-title', false)
             ->assertDontSee('Menjadi koperasi yang mandiri, modern, dan terpercaya')
@@ -39,6 +43,7 @@ class AboutPageTest extends TestCase
             'data-person-id="hidayatullah-suryaputra"',
         ], false);
 
+        $this->assertSame(3, substr_count($response->getContent(), '<div class="about-fact'));
         $this->assertCount(13, $people);
         $names = array_column($people, 'name');
         $this->assertCount(count($names), array_unique($names));

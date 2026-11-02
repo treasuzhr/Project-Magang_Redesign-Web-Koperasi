@@ -9,7 +9,6 @@
                 <h2 id="categories-title">Kebutuhan sehari-hari,<br><span>lebih mudah ditemukan.</span></h2>
             </div>
             <div class="category-showcase__intro">
-                <p>Arahkan kursor ke kategori untuk melihat pratinjaunya.</p>
                 <a href="{{ route('products.index') }}">Lihat semua produk <span aria-hidden="true">→</span></a>
             </div>
         </div>

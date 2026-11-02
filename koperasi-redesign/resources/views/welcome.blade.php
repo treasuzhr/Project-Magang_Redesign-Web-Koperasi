@@ -28,13 +28,15 @@
         </section>
 
         <section class="home-facts" id="kilas" aria-label="Sekilas Primkop">
-            <div class="home-facts__inner page-width">
-                <div class="home-facts__lead">
-                    <strong data-count-up data-count-start="1900" data-count-end="1989" aria-label="1989">1989</strong>
-                    <span>Tahun berdiri</span>
+            <div class="home-facts__inner">
+                <div class="home-stat">
+                    <strong class="home-stat__value">1989</strong>
+                    <span class="home-stat__label">Tahun berdiri</span>
                 </div>
-                <p><strong><span data-count-up data-count-start="0" data-count-end="160" aria-label="160">160</span>+</strong><span>anggota aktif per 31 Desember 2024</span></p>
-                <p><strong>Grade A</strong><span>Status koperasi yang tercantum pada profil</span></p>
+                <div class="home-stat">
+                    <strong class="home-stat__value" aria-label="160 lebih"><span data-member-count aria-hidden="true">160</span><span aria-hidden="true">+</span></strong>
+                    <span class="home-stat__label">anggota aktif per 31 Desember 2024</span>
+                </div>
             </div>
         </section>
 
@@ -81,14 +83,19 @@
                         href="{{ url('/login') }}"
                     >
                         <div class="service-visual service-visual--loan" aria-label="Contoh simulasi pinjaman">
-                            <div class="loan-panel">
-                                <span>Total pinjaman</span>
-                                <strong>Rp 10.000.000</strong>
-                                <div class="loan-slider" aria-hidden="true"><span></span><i></i></div>
-                                <span>Tenor <strong>12 bulan</strong></span>
+                            <div class="loan-panel" data-loan-preview role="group" aria-label="Pratinjau simulasi pinjaman">
+                                <label class="loan-control-label" for="loan-preview-amount">Total pinjaman</label>
+                                <output class="loan-amount" id="loan-preview-amount-value" for="loan-preview-amount" data-loan-amount>Rp 10.000.000</output>
+                                <input class="loan-range" id="loan-preview-amount" type="range" min="1000000" max="20000000" step="500000" value="10000000" aria-valuetext="Rp 10.000.000" data-loan-amount-input disabled>
+                                <div class="loan-tenor-heading">
+                                    <label class="loan-control-label" for="loan-preview-tenor">Tenor</label>
+                                    <output for="loan-preview-tenor" data-loan-tenor>12 bulan</output>
+                                </div>
+                                <input class="loan-range" id="loan-preview-tenor" type="range" min="6" max="36" step="6" value="12" aria-valuetext="12 bulan" data-loan-tenor-input disabled>
                                 <div class="loan-result">
-                                    <span>Contoh angsuran</span>
-                                    <strong>Rp <span data-service-counter data-count-end="933333">0</span></strong>
+                                    <span class="loan-result__label">Estimasi angsuran / bulan</span>
+                                    <output class="loan-result__value" for="loan-preview-amount loan-preview-tenor" data-loan-payment aria-live="polite" aria-atomic="true">Rp 933.333</output>
+                                    <p class="loan-result__detail" data-loan-breakdown>Pokok Rp 833.333 + bunga Rp 100.000</p>
                                 </div>
                             </div>
                         </div>
@@ -124,8 +131,8 @@
                         <div class="service-visual service-visual--shop" aria-label="Pratinjau katalog produk">
                             <div class="shop-preview">
                                 <span class="shop-preview__eyebrow">Def.MART · Katalog</span>
-                                <div><i aria-hidden="true"></i><span>Kebutuhan kantor</span></div>
-                                <div><i aria-hidden="true"></i><span>Kebutuhan harian</span></div>
+                                <div><i aria-hidden="true"><x-catalog-icon name="atk-perlengkapan-kantor" /></i><span>Kebutuhan kantor</span></div>
+                                <div><i aria-hidden="true"><x-catalog-icon name="bag" /></i><span>Kebutuhan harian</span></div>
                                 <a href="{{ route('products.index') }}">Jelajahi produk</a>
                             </div>
                         </div>

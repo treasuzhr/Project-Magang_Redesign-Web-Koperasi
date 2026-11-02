@@ -3,6 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="icon" type="image/svg+xml" sizes="any" href="{{ asset('favicon.svg') }}?v=primkop-1">
     <script>
         document.documentElement.classList.add('js');
         window.setTimeout(() => {
@@ -19,6 +20,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
+    @stack('page-assets')
 </head>
 <body class="page-public {{ request()->routeIs('home') ? 'page-home' : '' }} {{ request()->routeIs('news.*') ? 'page-news' : '' }}">
     <x-navbar />

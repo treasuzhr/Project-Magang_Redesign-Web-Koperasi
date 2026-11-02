@@ -45,7 +45,6 @@
                         <div>
                             <h2>Jam layanan</h2>
                             <p class="contact-card__value">07.30–15.00 WIB</p>
-                            <p>Informasi jam layanan mengacu pada website sebelumnya.</p>
                         </div>
                     </article>
                     <p class="contact-note">Untuk pertanyaan seputar keanggotaan, simpanan, pinjaman, atau pesanan, silakan hubungi atau kunjungi koperasi.</p>
