@@ -27,7 +27,6 @@
                         <p>Koperasi Biro Pengumpulan dan Pengolahan Data Setjen Dephankam didirikan pada tanggal
                             23 Januari 1989 dan beralamatkan di Jl. RS. Fatmawati No. 1 Pondok Labu Cilandak
                             Kota Jakarta Selatan Daerah Khusus Ibukota Jakarta.</p>
-                        <p>Sektor Usaha Jasa Keuangan dan Asuransi.</p>
                     </div>
                 </header>
                 <figure class="about-portrait" data-about-visual>

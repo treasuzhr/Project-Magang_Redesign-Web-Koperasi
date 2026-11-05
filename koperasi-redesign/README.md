@@ -197,4 +197,3 @@ php artisan test --compact tests/Feature/ProductCatalogTest.php
 - Konfigurasi PHP lokal, termasuk OPcache, tidak ikut terkirim melalui Git. Setiap pengembang perlu menyiapkan lingkungannya sendiri.
 - Jika muncul HTTP 500, periksa pesan terminal Laravel dan `storage/logs/laravel.log`. Timeout pemuatan PHP dan Vite yang tidak berjalan perlu ditangani berdasarkan log, bukan dengan mengubah konten halaman.
 - Integrasi PostgreSQL dan konfigurasi deployment masih perlu disiapkan serta diuji sebelum aplikasi digunakan untuk data atau transaksi operasional.
-btw pas loading produk kok kaya adaa buletan gede banget yaa
