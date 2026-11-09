@@ -2,15 +2,18 @@
 
 namespace Tests\Feature;
 
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 class MemberLoansTest extends TestCase
 {
+    use RefreshDatabase;
+
     public function test_loan_pages_render_with_shared_sidebar_and_empty_data_states(): void
     {
         $session = ['member.authenticated' => true];
 
-        $this->withSession($session)
+        $this->memberSession($session)
             ->get('/anggota/pinjaman')
             ->assertOk()
             ->assertSee('Halaman')
@@ -19,7 +22,7 @@ class MemberLoansTest extends TestCase
             ->assertSee('Anda belum memiliki pinjaman aktif.')
             ->assertSee('aria-current="page"', false);
 
-        $this->withSession($session)
+        $this->memberSession($session)
             ->get('/anggota/pinjaman/ajukan')
             ->assertOk()
             ->assertSee('-- Pilih Jenis Pinjaman --')
@@ -39,7 +42,7 @@ class MemberLoansTest extends TestCase
             ->assertSee('Simulasi bersifat estimasi, hasil final mengikuti persetujuan koperasi.')
             ->assertSee('data-monthly-interest-rates="{&quot;toko&quot;:null,&quot;usp&quot;:null,&quot;usp-khusus&quot;:null}"', false);
 
-        $this->withSession($session)
+        $this->memberSession($session)
             ->get('/anggota/pinjaman/riwayat')
             ->assertOk()
             ->assertSee('Belum ada riwayat pinjaman.')
@@ -56,7 +59,7 @@ class MemberLoansTest extends TestCase
 
     public function test_application_validation_preserves_input_and_renders_server_side_estimate(): void
     {
-        $response = $this->withSession(['member.authenticated' => true])
+        $response = $this->memberSession(['member.authenticated' => true])
             ->from('/anggota/pinjaman/ajukan')
             ->followingRedirects()
             ->post('/anggota/pinjaman/ajukan', [
@@ -74,7 +77,7 @@ class MemberLoansTest extends TestCase
 
     public function test_application_normalizes_amount_and_reports_each_custom_validation_message(): void
     {
-        $response = $this->withSession(['member.authenticated' => true])
+        $response = $this->memberSession(['member.authenticated' => true])
             ->from('/anggota/pinjaman/ajukan')
             ->post('/anggota/pinjaman/ajukan', [
                 'loan_type' => '',
@@ -95,7 +98,7 @@ class MemberLoansTest extends TestCase
 
     public function test_application_rejects_unknown_loan_type_and_preserves_a_valid_selection(): void
     {
-        $this->withSession(['member.authenticated' => true])
+        $this->memberSession(['member.authenticated' => true])
             ->from('/anggota/pinjaman/ajukan')
             ->post('/anggota/pinjaman/ajukan', [
                 'loan_type' => 'unknown-type',
@@ -106,7 +109,7 @@ class MemberLoansTest extends TestCase
             ->assertRedirect('/anggota/pinjaman/ajukan')
             ->assertSessionHasErrors(['loan_type' => 'Pilih jenis pinjaman dulu.']);
 
-        $response = $this->withSession(['member.authenticated' => true])
+        $response = $this->memberSession(['member.authenticated' => true])
             ->from('/anggota/pinjaman/ajukan')
             ->followingRedirects()
             ->post('/anggota/pinjaman/ajukan', [
@@ -124,7 +127,7 @@ class MemberLoansTest extends TestCase
 
     public function test_valid_application_returns_success_notice_without_persisting_dummy_data(): void
     {
-        $this->withSession(['member.authenticated' => true])
+        $this->memberSession(['member.authenticated' => true])
             ->post('/anggota/pinjaman/ajukan', [
                 'loan_type' => 'toko',
                 'loan_total' => '10.000.000',

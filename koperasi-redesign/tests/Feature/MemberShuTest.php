@@ -2,13 +2,16 @@
 
 namespace Tests\Feature;
 
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 class MemberShuTest extends TestCase
 {
+    use RefreshDatabase;
+
     public function test_shu_index_shows_the_latest_summary_and_ordered_member_data(): void
     {
-        $response = $this->withSession(['member.authenticated' => true])
+        $response = $this->memberSession(['member.authenticated' => true])
             ->get('/anggota/shu');
 
         $response
@@ -27,7 +30,7 @@ class MemberShuTest extends TestCase
 
     public function test_shu_detail_shows_exact_2025_rows_and_fixed_total(): void
     {
-        $response = $this->withSession(['member.authenticated' => true])
+        $response = $this->memberSession(['member.authenticated' => true])
             ->get('/anggota/shu/2025');
 
         $response
@@ -45,12 +48,12 @@ class MemberShuTest extends TestCase
 
     public function test_other_listed_years_show_an_empty_detail_and_unknown_years_return_404(): void
     {
-        $this->withSession(['member.authenticated' => true])
+        $this->memberSession(['member.authenticated' => true])
             ->get('/anggota/shu/2024')
             ->assertOk()
             ->assertSee('Detail belum tersedia.');
 
-        $this->withSession(['member.authenticated' => true])
+        $this->memberSession(['member.authenticated' => true])
             ->get('/anggota/shu/2020')
             ->assertNotFound();
     }

@@ -2,15 +2,19 @@
 
 namespace Tests\Feature;
 
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Hash;
 use Tests\TestCase;
 
 class MemberPasswordTest extends TestCase
 {
+    use RefreshDatabase;
+
     public function test_password_page_renders_with_shared_portal_components_and_requires_member_session(): void
     {
         $this->get('/anggota/ubah-password')->assertRedirect('/login');
 
-        $response = $this->withSession(['member.authenticated' => true])
+        $response = $this->memberSession(['member.authenticated' => true])
             ->get('/anggota/ubah-password')
             ->assertOk();
 
@@ -38,7 +42,7 @@ class MemberPasswordTest extends TestCase
     {
         $session = ['member.authenticated' => true];
 
-        $this->withSession($session)
+        $this->memberSession($session)
             ->from('/anggota/ubah-password')
             ->post('/anggota/ubah-password', [
                 'password' => '',
@@ -51,7 +55,7 @@ class MemberPasswordTest extends TestCase
             ])
             ->assertSessionMissing('_old_input');
 
-        $this->withSession($session)
+        $this->memberSession($session)
             ->from('/anggota/ubah-password')
             ->post('/anggota/ubah-password', [
                 'password' => 'baru1234',
@@ -65,30 +69,32 @@ class MemberPasswordTest extends TestCase
 
     public function test_existing_minimum_password_rule_is_applied(): void
     {
-        $this->withSession(['member.authenticated' => true])
+        $this->memberSession(['member.authenticated' => true])
             ->from('/anggota/ubah-password')
             ->post('/anggota/ubah-password', [
                 'password' => 'abc',
                 'password_confirmation' => 'abc',
             ])
-            ->assertSessionHasErrors(['password' => 'Password baru minimal 4 karakter.']);
+            ->assertSessionHasErrors(['password' => 'Password baru minimal 8 karakter.']);
     }
 
-    public function test_valid_password_only_returns_the_requested_success_message_without_saving(): void
+    public function test_valid_password_is_saved_and_returns_to_the_dashboard(): void
     {
-        $this->withSession(['member.authenticated' => true])
+        $this->memberSession(['member.authenticated' => true])
             ->post('/anggota/ubah-password', [
                 'password' => 'baru1234',
                 'password_confirmation' => 'baru1234',
             ])
-            ->assertRedirect('/anggota/ubah-password')
+            ->assertRedirect('/anggota')
             ->assertSessionHas('status', 'Password berhasil diubah.')
             ->assertSessionMissing('_old_input');
+
+        $this->assertTrue(Hash::check('baru1234', auth()->user()->fresh()->password));
     }
 
     public function test_password_update_is_limited_to_six_attempts_per_minute(): void
     {
-        $this->withSession(['member.authenticated' => true]);
+        $this->memberSession(['member.authenticated' => true]);
         for ($attempt = 0; $attempt < 6; $attempt++) {
             $this->from('/anggota/ubah-password')
                 ->post('/anggota/ubah-password', [

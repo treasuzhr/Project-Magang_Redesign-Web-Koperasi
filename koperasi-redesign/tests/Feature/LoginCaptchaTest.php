@@ -2,16 +2,20 @@
 
 namespace Tests\Feature;
 
+use App\Models\Anggota;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 class LoginCaptchaTest extends TestCase
 {
+    use RefreshDatabase;
+
     public function test_login_displays_a_six_character_alphanumeric_captcha(): void
     {
         $response = $this->get('/login');
         $captchaCode = session('captcha_answer');
 
-        $response->assertOk()->assertSee($captchaCode);
+        $response->assertOk()->assertSee('id="captchaCode"', false)->assertSee(route('login.captcha', ['image' => 1]), false);
         $this->assertMatchesRegularExpression('/\A[A-HJ-NP-Z2-9]{6}\z/', $captchaCode);
     }
 
@@ -41,14 +45,15 @@ class LoginCaptchaTest extends TestCase
 
     public function test_login_accepts_the_captcha_without_case_sensitivity(): void
     {
+        $member = Anggota::factory()->create();
+        $member->user->update(['must_change_password' => false]);
         $this->withSession(['captcha_answer' => 'AB2CDE'])
             ->post('/login', [
-                'member_id' => 'TEST-NRP',
-                'password' => 'secret',
+                'member_id' => $member->user->nip,
+                'password' => 'password',
                 'captcha' => 'ab2cde',
             ])
             ->assertRedirect('/anggota')
-            ->assertSessionHas('member.authenticated', true)
             ->assertSessionMissing('captcha_answer');
     }
 }

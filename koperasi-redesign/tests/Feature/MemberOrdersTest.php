@@ -2,13 +2,16 @@
 
 namespace Tests\Feature;
 
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 class MemberOrdersTest extends TestCase
 {
+    use RefreshDatabase;
+
     public function test_order_history_shows_the_four_orders_in_order(): void
     {
-        $response = $this->withSession(['member.authenticated' => true])
+        $response = $this->memberSession(['member.authenticated' => true])
             ->get('/anggota/pesanan');
 
         $response
@@ -32,7 +35,7 @@ class MemberOrdersTest extends TestCase
 
     public function test_order_details_show_product_data_only_when_available(): void
     {
-        $this->withSession(['member.authenticated' => true])
+        $this->memberSession(['member.authenticated' => true])
             ->get('/anggota/pesanan/1')
             ->assertOk()
             ->assertSee('Detail')
@@ -44,7 +47,7 @@ class MemberOrdersTest extends TestCase
             ->assertSee('Jumlah');
 
         foreach ([2, 3, 4] as $id) {
-            $this->withSession(['member.authenticated' => true])
+            $this->memberSession(['member.authenticated' => true])
                 ->get("/anggota/pesanan/{$id}")
                 ->assertOk()
                 ->assertSee('Detail belum tersedia.')
@@ -54,11 +57,11 @@ class MemberOrdersTest extends TestCase
 
     public function test_unknown_order_ids_return_not_found_and_pages_require_member_session(): void
     {
-        $this->withSession(['member.authenticated' => true])
+        $this->memberSession(['member.authenticated' => true])
             ->get('/anggota/pesanan/5')
             ->assertNotFound();
 
-        $this->withSession(['member.authenticated' => false])
+        $this->memberSession(['member.authenticated' => false])
             ->get('/anggota/pesanan')
             ->assertRedirect('/login');
         $this->get('/anggota/pesanan/1')->assertRedirect('/login');

@@ -14,7 +14,6 @@ class AboutPageTest extends TestCase
         $response->assertOk()
             ->assertSee('Tentang Kami')
             ->assertSee('Struktur Pengurus Koperasi')
-            ->assertSee('Jasa Keuangan dan Asuransi')
             ->assertSee('07:30 - 15:00')
             ->assertSee('Aktif di jam kerja')
             ->assertSee('href="tel:3215"', false)

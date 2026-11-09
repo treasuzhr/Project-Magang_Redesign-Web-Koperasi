@@ -22,11 +22,20 @@
             <a class="cart-link" href="{{ route('cart.index') }}" aria-label="Keranjang">
                 <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 4h2l2.1 10.1a2 2 0 0 0 2 1.6h8.8a2 2 0 0 0 1.9-1.4L22 8H6M10 20a1 1 0 1 1-2 0 1 1 0 0 1 2 0Zm9 0a1 1 0 1 1-2 0 1 1 0 0 1 2 0Z"/></svg>
             </a>
-            @if (!session('member.authenticated'))
+            @guest
                 <a class="button button--login" href="{{ url('/login') }}">Masuk</a>
-            @elseif (!request()->routeIs('anggota.*'))
-                <a class="button button--login" href="{{ route('anggota.dashboard') }}">Dashboard</a>
-            @endif
+            @else
+                <details class="nav-user">
+                    <summary aria-label="Menu pengguna: {{ auth()->user()->name }}"><span>{{ auth()->user()->name }}</span><span aria-hidden="true">&#8964;</span></summary>
+                    <div class="nav-user__menu">
+                        <a href="{{ route(App\Http\Controllers\AuthController::dashboardRoute(auth()->user())) }}">Dashboard</a>
+                        <form method="POST" action="{{ route('logout') }}">
+                            @csrf
+                            <button type="submit">Keluar</button>
+                        </form>
+                    </div>
+                </details>
+            @endguest
         </div>
     </div>
 </header>

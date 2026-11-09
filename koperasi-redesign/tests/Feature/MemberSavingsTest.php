@@ -2,13 +2,16 @@
 
 namespace Tests\Feature;
 
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 class MemberSavingsTest extends TestCase
 {
+    use RefreshDatabase;
+
     public function test_savings_root_redirects_to_pokok_and_tabs_show_their_requested_data(): void
     {
-        $this->withSession(['member.authenticated' => true])
+        $this->memberSession(['member.authenticated' => true])
             ->get('/anggota/simpanan')
             ->assertRedirect('/anggota/simpanan/pokok');
 
@@ -22,7 +25,7 @@ class MemberSavingsTest extends TestCase
         ];
 
         foreach ($tabs as $path => $expectedContent) {
-            $response = $this->withSession(['member.authenticated' => true])->get($path);
+            $response = $this->memberSession(['member.authenticated' => true])->get($path);
             $response->assertOk();
 
             foreach ($expectedContent as $text) {
@@ -33,13 +36,13 @@ class MemberSavingsTest extends TestCase
 
     public function test_savings_details_render_available_rows_and_empty_state_for_index_years(): void
     {
-        $this->withSession(['member.authenticated' => true])
+        $this->memberSession(['member.authenticated' => true])
             ->get('/anggota/simpanan/wajib/2025')
             ->assertOk()
             ->assertSee('Detail data')
             ->assertSee('Rp 5.050.000');
 
-        $detail = $this->withSession(['member.authenticated' => true])
+        $detail = $this->memberSession(['member.authenticated' => true])
             ->get('/anggota/simpanan/sukarela/2025');
         $detail
             ->assertOk()
@@ -48,7 +51,7 @@ class MemberSavingsTest extends TestCase
             ->assertSee('Rp 200.000');
         $this->assertSame(12, substr_count($detail->getContent(), 'data-table-row'));
 
-        $this->withSession(['member.authenticated' => true])
+        $this->memberSession(['member.authenticated' => true])
             ->get('/anggota/simpanan/sukarela/2024')
             ->assertOk()
             ->assertSee('Detail belum tersedia.');
@@ -56,15 +59,15 @@ class MemberSavingsTest extends TestCase
 
     public function test_unknown_savings_types_and_years_return_not_found(): void
     {
-        $this->withSession(['member.authenticated' => true])
+        $this->memberSession(['member.authenticated' => true])
             ->get('/anggota/simpanan/invalid')
             ->assertNotFound();
 
-        $this->withSession(['member.authenticated' => true])
+        $this->memberSession(['member.authenticated' => true])
             ->get('/anggota/simpanan/pokok/2025')
             ->assertNotFound();
 
-        $this->withSession(['member.authenticated' => true])
+        $this->memberSession(['member.authenticated' => true])
             ->get('/anggota/simpanan/sukarela/2019')
             ->assertNotFound();
     }

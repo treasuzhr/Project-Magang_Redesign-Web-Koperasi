@@ -17,12 +17,8 @@ class AnggotaController extends Controller
 
     public function avatarEdit(): View|RedirectResponse
     {
-        if (! session()->get('member.authenticated')) {
-            return redirect()->route('login')->with('error', 'Silakan masuk ke akun anggota terlebih dahulu.');
-        }
-
         $member = [
-            'name' => session('member.name', 'Agus Wiji Suhariono'),
+            'name' => auth()->user()->name,
             'nip' => '199008022018021001',
             'jabatan' => 'Pranata Komputer Pelaksana Lanjutan / Mahir',
             'avatar_url' => null,
@@ -34,10 +30,6 @@ class AnggotaController extends Controller
 
     public function uploadAvatar(Request $request): RedirectResponse
     {
-        if (! session()->get('member.authenticated')) {
-            return redirect()->route('login')->with('error', 'Silakan masuk ke akun anggota terlebih dahulu.');
-        }
-
         $limiterKey = 'member-avatar-upload:'.sha1((string) $request->ip());
         if (RateLimiter::tooManyAttempts($limiterKey, 10)) {
             return back()->withErrors([
@@ -68,73 +60,15 @@ class AnggotaController extends Controller
 
     public function deleteAvatar(Request $request): RedirectResponse
     {
-        if (! session()->get('member.authenticated')) {
-            return redirect()->route('login')->with('error', 'Silakan masuk ke akun anggota terlebih dahulu.');
-        }
-
         // TODO: hapus avatar dari data asli
         return redirect()->route('anggota.avatar.edit')->with('status', 'Belum ada foto profil untuk dihapus.');
     }
 
-    public function passwordEdit(): View|RedirectResponse
-    {
-        if (! session()->get('member.authenticated')) {
-            return redirect()->route('login')->with('error', 'Silakan masuk ke akun anggota terlebih dahulu.');
-        }
-
-        $member = [
-            'name' => session('member.name', 'Agus Wiji Suhariono'),
-            'nip' => '199008022018021001',
-            'jabatan' => 'Pranata Komputer Pelaksana Lanjutan / Mahir',
-            'avatar_url' => null,
-        ];
-
-        return view('anggota.ubah-password', compact('member'));
-    }
-
-    public function updatePassword(Request $request): RedirectResponse
-    {
-        if (! session()->get('member.authenticated')) {
-            return redirect()->route('login')->with('error', 'Silakan masuk ke akun anggota terlebih dahulu.');
-        }
-
-        $limiterKey = 'member-password-change:'.sha1((string) $request->ip());
-        if (RateLimiter::tooManyAttempts($limiterKey, 6)) {
-            return back()->withErrors([
-                'password' => 'Terlalu banyak percobaan. Tunggu sebentar lalu coba lagi.',
-            ]);
-        }
-        RateLimiter::hit($limiterKey, 60);
-
-        $validator = Validator::make($request->only('password', 'password_confirmation'), [
-            'password' => ['required', 'string', 'min:4'],
-            'password_confirmation' => ['required', 'string', 'same:password'],
-        ], [
-            'password.required' => 'Password baru wajib diisi.',
-            'password.min' => 'Password baru minimal 4 karakter.',
-            'password_confirmation.required' => 'Ulangi password baru wajib diisi.',
-            'password_confirmation.same' => 'Kedua password harus sama. Ketik ulang dengan teliti.',
-        ]);
-
-        if ($validator->fails()) {
-            return back()->withErrors($validator);
-        }
-
-        RateLimiter::clear($limiterKey);
-
-        // TODO: simpan password baru ke data asli dengan skema hash yang dipakai situs
-        return redirect()->route('anggota.password.edit')->with('status', 'Password berhasil diubah.');
-    }
-
     public function dashboard(): View|RedirectResponse
     {
-        if (! session()->get('member.authenticated')) {
-            return redirect()->route('login')->with('error', 'Silakan masuk ke akun anggota terlebih dahulu.');
-        }
-
         // TODO: sambungkan ke data asli
         $member = [
-            'name' => session('member.name', 'Agus Wiji Suhariono'),
+            'name' => auth()->user()->name,
             'nip' => '199008022018021001',
             'jabatan' => 'Pranata Komputer Pelaksana Lanjutan / Mahir',
             'avatar_url' => null,
@@ -176,20 +110,12 @@ class AnggotaController extends Controller
 
     public function savingsRedirect(): RedirectResponse
     {
-        if (! session()->get('member.authenticated')) {
-            return redirect()->route('login')->with('error', 'Silakan masuk ke akun anggota terlebih dahulu.');
-        }
-
         return redirect()->route('anggota.simpanan.tab', ['jenis' => 'pokok']);
     }
 
     public function savingsIndex(string $jenis): View|RedirectResponse
     {
         abort_unless(in_array($jenis, self::SAVINGS_TYPES, true), 404);
-
-        if (! session()->get('member.authenticated')) {
-            return redirect()->route('login')->with('error', 'Silakan masuk ke akun anggota terlebih dahulu.');
-        }
 
         $typeLabels = [
             'pokok' => 'Pokok',
@@ -314,10 +240,6 @@ class AnggotaController extends Controller
     {
         abort_unless(in_array($jenis, ['wajib', 'sukarela'], true), 404);
 
-        if (! session()->get('member.authenticated')) {
-            return redirect()->route('login')->with('error', 'Silakan masuk ke akun anggota terlebih dahulu.');
-        }
-
         // TODO: sambungkan ke data asli.
         $savings = [
             'wajib' => [
@@ -384,10 +306,6 @@ class AnggotaController extends Controller
 
     public function shuIndex(): View|RedirectResponse
     {
-        if (! session()->get('member.authenticated')) {
-            return redirect()->route('login')->with('error', 'Silakan masuk ke akun anggota terlebih dahulu.');
-        }
-
         // TODO: sambungkan ke data asli.
         $shuData = [
             ['year' => 2025, 'amount' => 676717],
@@ -427,10 +345,6 @@ class AnggotaController extends Controller
 
     public function shuDetail(int $tahun): View|RedirectResponse
     {
-        if (! session()->get('member.authenticated')) {
-            return redirect()->route('login')->with('error', 'Silakan masuk ke akun anggota terlebih dahulu.');
-        }
-
         // TODO: sambungkan ke data asli
         $shuData = [
             2025 => [
@@ -472,10 +386,6 @@ class AnggotaController extends Controller
 
     public function loanIndex(): View|RedirectResponse
     {
-        if (! session()->get('member.authenticated')) {
-            return redirect()->route('login')->with('error', 'Silakan masuk ke akun anggota terlebih dahulu.');
-        }
-
         // TODO: sambungkan ke data pinjaman asli.
         $activeLoans = [];
 
@@ -487,10 +397,6 @@ class AnggotaController extends Controller
 
     public function loanApplication(): View|RedirectResponse
     {
-        if (! session()->get('member.authenticated')) {
-            return redirect()->route('login')->with('error', 'Silakan masuk ke akun anggota terlebih dahulu.');
-        }
-
         $options = $this->loanFormOptions();
         // TODO: isi suku bunga dan rumus dari ketentuan koperasi.
         $monthlyInterestRates = [
@@ -518,10 +424,6 @@ class AnggotaController extends Controller
 
     public function submitLoanApplication(Request $request): RedirectResponse
     {
-        if (! session()->get('member.authenticated')) {
-            return redirect()->route('login')->with('error', 'Silakan masuk ke akun anggota terlebih dahulu.');
-        }
-
         $originalInput = $request->all();
         $normalizedTotal = preg_replace('/\D+/', '', (string) $request->input('loan_total', '')) ?? '';
         $request->merge(['loan_total' => $normalizedTotal]);
@@ -561,10 +463,6 @@ class AnggotaController extends Controller
 
     public function loanHistory(): View|RedirectResponse
     {
-        if (! session()->get('member.authenticated')) {
-            return redirect()->route('login')->with('error', 'Silakan masuk ke akun anggota terlebih dahulu.');
-        }
-
         // TODO: sambungkan ke data riwayat pinjaman asli.
         $rows = [];
         // TODO: arahkan detail ke halaman detail pinjaman saat kontennya tersedia.
@@ -594,10 +492,6 @@ class AnggotaController extends Controller
 
     public function orderIndex(): View|RedirectResponse
     {
-        if (! session()->get('member.authenticated')) {
-            return redirect()->route('login')->with('error', 'Silakan masuk ke akun anggota terlebih dahulu.');
-        }
-
         $rows = array_values($this->orders());
         foreach ($rows as &$row) {
             $row['action_url'] = route('anggota.pesanan.detail', ['id' => $row['id']]);
@@ -620,10 +514,6 @@ class AnggotaController extends Controller
 
     public function orderDetail(int $id): View|RedirectResponse
     {
-        if (! session()->get('member.authenticated')) {
-            return redirect()->route('login')->with('error', 'Silakan masuk ke akun anggota terlebih dahulu.');
-        }
-
         $orders = $this->orders();
         abort_unless(isset($orders[$id]), 404);
 
@@ -635,10 +525,6 @@ class AnggotaController extends Controller
 
     public function documentIndex(): View|RedirectResponse
     {
-        if (! session()->get('member.authenticated')) {
-            return redirect()->route('login')->with('error', 'Silakan masuk ke akun anggota terlebih dahulu.');
-        }
-
         $rows = array_values($this->documents());
         foreach ($rows as &$row) {
             $row['action_url'] = route('anggota.dokumen.download', ['id' => $row['id']]);
@@ -665,10 +551,6 @@ class AnggotaController extends Controller
 
     public function downloadDocument(int $id): RedirectResponse|StreamedResponse
     {
-        if (! session()->get('member.authenticated')) {
-            return redirect()->route('login')->with('error', 'Silakan masuk ke akun anggota terlebih dahulu.');
-        }
-
         $documents = $this->documents();
         abort_unless(isset($documents[$id]), 404);
         $document = $documents[$id];
@@ -815,7 +697,7 @@ class AnggotaController extends Controller
     {
         // TODO: sambungkan ke data asli.
         return [
-            'name' => session('member.name', 'Agus Wiji Suhariono'),
+            'name' => auth()->user()->name,
             'nip' => '199008022018021001',
             'jabatan' => 'Pranata Komputer Pelaksana Lanjutan / Mahir',
             'avatar_url' => null,

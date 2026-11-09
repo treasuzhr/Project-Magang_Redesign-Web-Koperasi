@@ -936,7 +936,7 @@
                             <input id="memberId" name="member_id" type="text" placeholder="Masukkan NRP / NIP" autocomplete="username" value="{{ old('member_id') }}" required @if ($errors->has('member_id')) aria-invalid="true" aria-describedby="memberIdError" @endif>
                         </div>
                         @if ($errors->has('member_id'))
-                            <p class="field-error" id="memberIdError">NRP/NIP wajib diisi dan maksimal 255 karakter.</p>
+                            <p class="field-error" id="memberIdError">{{ $errors->first('member_id') }}</p>
                         @endif
                     </div>
 
@@ -953,21 +953,21 @@
                             </button>
                         </div>
                         @if ($errors->has('password'))
-                            <p class="field-error" id="passwordError">Kata sandi wajib diisi dan minimal 4 karakter.</p>
+                            <p class="field-error" id="passwordError">{{ $errors->first('password') }}</p>
                         @endif
                     </div>
 
                     <div class="field-group">
                         <label for="captchaInput">Kode verifikasi</label>
                         <div class="captcha-box">
-                            <img src="{{ route('login.captcha') }}" id="captchaCode" alt="Kode verifikasi CAPTCHA" class="captcha-code">
+                            <img src="{{ route('login.captcha', ['image' => 1]) }}" id="captchaCode" alt="Kode verifikasi CAPTCHA" class="captcha-code">
                             <input type="text" name="captcha" id="captchaInput" placeholder="Kode pada gambar" inputmode="text" autocomplete="off" autocapitalize="characters" spellcheck="false" maxlength="6" value="{{ old('captcha') }}" required @if ($errors->has('captcha')) aria-invalid="true" aria-describedby="captchaError" @endif>
                             <button type="button" class="captcha-refresh" id="refreshCaptcha" aria-label="Segarkan kode verifikasi">
                                 <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 7v5h-5"></path><path d="M19 12a7 7 0 0 0-12-5L5 9"></path><path d="M4 17v-5h5"></path><path d="M5 12a7 7 0 0 0 12 5l2-2"></path></svg>
                             </button>
                         </div>
                         @if ($errors->has('captcha'))
-                            <p class="field-error" id="captchaError">Kode verifikasi salah atau belum lengkap. Periksa kode, lalu coba lagi.</p>
+                            <p class="field-error" id="captchaError">{{ $errors->first('captcha') }}</p>
                         @endif
                     </div>
 
@@ -985,12 +985,20 @@
         const loginForm = document.getElementById('loginForm');
 
         async function refreshCaptcha(shouldFocus = true) {
-    captchaCode.src = "{{ route('login.captcha') }}?t=" + Date.now();
-    captchaInput.value = '';
-
-    if (shouldFocus) {
-        captchaInput.focus();
-    }
+            refreshCaptchaButton.disabled = true;
+            try {
+                const response = await fetch("{{ route('login.captcha') }}", {
+                    headers: { Accept: 'application/json' }, cache: 'no-store', credentials: 'same-origin',
+                });
+                if (!response.ok) throw new Error('Kode verifikasi belum dapat diperbarui. Coba lagi.');
+                const result = await response.json();
+                if (!result.code) throw new Error('Kode verifikasi belum tersedia. Coba lagi.');
+                captchaCode.src = "{!! route('login.captcha', ['image' => 1]) !!}&t=" + Date.now();
+                captchaInput.value = '';
+                if (shouldFocus) captchaInput.focus();
+            } finally {
+                refreshCaptchaButton.disabled = false;
+            }
         }
 
         function showCaptchaError(error) {
@@ -1022,9 +1030,6 @@
             firstInvalidField.focus();
         }
 
-        @if ($errors->any())
-            refreshCaptcha(false).catch(showCaptchaError);
-        @endif
     </script>
 </body>
 </html>

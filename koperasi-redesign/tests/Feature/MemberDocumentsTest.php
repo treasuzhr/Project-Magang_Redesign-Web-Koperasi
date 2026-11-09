@@ -2,13 +2,16 @@
 
 namespace Tests\Feature;
 
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 class MemberDocumentsTest extends TestCase
 {
+    use RefreshDatabase;
+
     public function test_document_index_shows_ten_known_documents_and_marks_sidebar_active(): void
     {
-        $response = $this->withSession(['member.authenticated' => true])
+        $response = $this->memberSession(['member.authenticated' => true])
             ->get('/anggota/dokumen');
 
         $response
@@ -30,18 +33,18 @@ class MemberDocumentsTest extends TestCase
 
     public function test_unavailable_document_redirects_with_flash_and_unknown_ids_return_not_found(): void
     {
-        $this->withSession(['member.authenticated' => true])
+        $this->memberSession(['member.authenticated' => true])
             ->get('/anggota/dokumen/1/unduh')
             ->assertRedirect('/anggota/dokumen')
             ->assertSessionHas('status', 'Berkas belum tersedia.');
 
-        $this->withSession(['member.authenticated' => true, 'status' => 'Berkas belum tersedia.'])
+        $this->memberSession(['member.authenticated' => true, 'status' => 'Berkas belum tersedia.'])
             ->get('/anggota/dokumen')
             ->assertOk()
             ->assertSee('Berkas belum tersedia.')
             ->assertSee('role="status"', false);
 
-        $this->withSession(['member.authenticated' => true])
+        $this->memberSession(['member.authenticated' => true])
             ->get('/anggota/dokumen/11/unduh')
             ->assertNotFound();
     }

@@ -3,8 +3,10 @@
 @section('member-content')
     @include('anggota.partials.password-styles')
 
-    <div class="member-shell page-width">
-        <x-anggota.sidebar :member="$member" active="none" />
+    <div class="member-shell page-width {{ auth()->user()->role === 'admin' ? 'account-password--admin' : '' }}">
+        @if (auth()->user()->role === 'anggota')
+            <x-anggota.sidebar :member="$member" active="none" />
+        @endif
 
         <div class="member-main member-password">
             <x-anggota.page-header
@@ -13,6 +15,10 @@
                 accent="password"
                 subtitle="Ganti password akun Anda."
             />
+
+            @if (auth()->user()->must_change_password)
+                <x-anggota.info-box>Anda wajib mengganti password sebelum melanjutkan.</x-anggota.info-box>
+            @endif
 
             @if (session('status'))
                 <x-anggota.info-box>{{ session('status') }}</x-anggota.info-box>
@@ -27,7 +33,7 @@
             <form
                 class="member-password__form"
                 method="POST"
-                action="{{ route('anggota.password.update') }}"
+                action="{{ route('password.update') }}"
                 novalidate
                 data-member-password-form
             >
@@ -45,7 +51,7 @@
                             label="Password baru"
                             type="password"
                             placeholder="Masukkan password baru"
-                            help="Minimal 4 karakter."
+                            help="Minimal 8 karakter dan berbeda dari password lama."
                             :error="$errors->has('password') ? $errors->first('password') : null"
                             autocomplete="new-password"
                             data-member-password-input
@@ -82,7 +88,7 @@
                     </div>
 
                     <div class="member-password__actions">
-                        <a class="member-password__cancel" href="{{ route('anggota.dashboard') }}">Batal</a>
+                        <a class="member-password__cancel" href="{{ route(App\Http\Controllers\AuthController::dashboardRoute(auth()->user())) }}">Batal</a>
                         <x-anggota.primary-button type="submit" class="member-password__submit" data-password-submit>
                             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h12l3 3v13H4V4h1Zm3 0v6h8V4m-8 16v-6h8v6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
                             <span data-password-submit-label>Simpan password</span>

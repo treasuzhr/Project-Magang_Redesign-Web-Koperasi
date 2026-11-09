@@ -2,16 +2,19 @@
 
 namespace Tests\Feature;
 
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Tests\TestCase;
 
 class MemberAvatarTest extends TestCase
 {
+    use RefreshDatabase;
+
     public function test_avatar_page_renders_profile_and_upload_interface_and_requires_member_session(): void
     {
         $this->get('/anggota/ubah-avatar')->assertRedirect('/login');
 
-        $this->withSession(['member.authenticated' => true])
+        $this->memberSession(['member.authenticated' => true])
             ->get('/anggota/ubah-avatar')
             ->assertOk()
             ->assertSee('Ganti foto profil akun Anda.')
@@ -27,19 +30,19 @@ class MemberAvatarTest extends TestCase
     {
         $session = ['member.authenticated' => true];
 
-        $this->withSession($session)
+        $this->memberSession($session)
             ->from('/anggota/ubah-avatar')
             ->post('/anggota/ubah-avatar')
             ->assertSessionHasErrors(['avatar' => 'Pilih foto dulu sebelum mengunggah.']);
 
-        $this->withSession($session)
+        $this->memberSession($session)
             ->from('/anggota/ubah-avatar')
             ->post('/anggota/ubah-avatar', [
                 'avatar' => UploadedFile::fake()->create('dokumen.pdf', 5, 'application/pdf'),
             ])
             ->assertSessionHasErrors(['avatar' => 'Format file tidak didukung. Pilih foto JPG, PNG, atau WEBP.']);
 
-        $this->withSession($session)
+        $this->memberSession($session)
             ->from('/anggota/ubah-avatar')
             ->post('/anggota/ubah-avatar', [
                 'avatar' => UploadedFile::fake()->image('besar.png')->size(2049),
@@ -49,7 +52,7 @@ class MemberAvatarTest extends TestCase
 
     public function test_valid_avatar_upload_returns_dummy_success_without_persisting_a_file(): void
     {
-        $this->withSession(['member.authenticated' => true])
+        $this->memberSession(['member.authenticated' => true])
             ->post('/anggota/ubah-avatar', [
                 'avatar' => UploadedFile::fake()->image('foto.png'),
             ])
@@ -61,7 +64,7 @@ class MemberAvatarTest extends TestCase
     {
         $this->delete('/anggota/ubah-avatar')->assertRedirect('/login');
 
-        $this->withSession(['member.authenticated' => true])
+        $this->memberSession(['member.authenticated' => true])
             ->delete('/anggota/ubah-avatar')
             ->assertRedirect('/anggota/ubah-avatar')
             ->assertSessionHas('status', 'Belum ada foto profil untuk dihapus.');

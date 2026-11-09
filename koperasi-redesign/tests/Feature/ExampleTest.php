@@ -15,10 +15,12 @@ class ExampleTest extends TestCase
         $response = $this->get('/');
 
         $response->assertOk()
-            ->assertSee('Produk Koperasi')
-            ->assertSee('Kategori Produk')
-            ->assertSee('Berita &amp; Informasi', false)
-            ->assertSee('Layanan Primkop Pullahta Hankam')
+            ->assertSeeText('Satu situs,')
+            ->assertSeeText('empat layanan.')
+            ->assertSeeText('Kabar Primkop')
+            ->assertSeeText('Jelajahi pilihan')
+            ->assertSeeText('Layanan Primkop')
+            ->assertSeeText('Pullahta Hankam')
             ->assertSee(asset('assets/images/hero/hero-utama.jpg'))
             ->assertSee(asset('assets/images/categories/snack.png'))
             ->assertSee(asset('assets/images/news/berita-1.jpg'))
