@@ -34,7 +34,6 @@
                     <span>Tahun berdiri</span>
                 </div>
                 <p><strong><span data-count-up data-count-start="0" data-count-end="160" aria-label="160">160</span>+</strong><span>anggota aktif per 31 Desember 2024</span></p>
-                <p><strong>Grade A</strong><span>Status koperasi yang tercantum pada profil</span></p>
             </div>
         </section>
 

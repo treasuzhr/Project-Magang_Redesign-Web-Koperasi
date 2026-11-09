@@ -8,19 +8,19 @@
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <style>
         :root {
-            --green-900: #1a3d2c;
-            --green-800: #214b34;
-            --green-700: #2c5b3d;
-            --green-600: #3a7f4a;
-            --green-500: #4b9a57;
-            --green-300: #b4d977;
-            --green-100: #e9f5e6;
-            --bg-soft: #ecf0ec;
-            --line: #d9e2d8;
-            --text: #1d2a24;
-            --muted: #5f6d66;
+            --green-900: #193322;
+            --green-800: #25432f;
+            --green-700: #365638;
+            --green-600: #638533;
+            --green-500: #7fad39;
+            --green-300: #c5dba5;
+            --green-100: #edf3e6;
+            --bg-soft: #f3f6ee;
+            --line: #dce4d5;
+            --text: #15241c;
+            --muted: #5b6d62;
             --white: #ffffff;
-            --shadow: 0 20px 45px rgba(17, 41, 29, 0.12);
+            --shadow: 0 16px 36px rgba(21, 36, 28, 0.09);
         }
 
         * { box-sizing: border-box; }
@@ -37,17 +37,17 @@
             min-height: 100vh;
             display: grid;
             place-items: center;
-            padding: 40px 16px;
+            padding: 24px 16px;
         }
 
         .login-shell {
-            width: min(1180px, 100%);
-            min-height: 760px;
+            width: min(1000px, 100%);
+            min-height: 640px;
             display: grid;
             grid-template-columns: 1.04fr 0.96fr;
             background: var(--white);
             border: 1px solid rgba(35, 62, 46, 0.08);
-            border-radius: 24px;
+            border-radius: 22px;
             overflow: hidden;
             box-shadow: var(--shadow);
         }
@@ -57,8 +57,8 @@
             display: flex;
             flex-direction: column;
             justify-content: space-between;
-            padding: 32px 52px 26px;
-            background: linear-gradient(135deg, #214f35 0%, #2a5d3c 32%, #326d42 100%);
+            padding: 28px 40px 24px;
+            background: linear-gradient(135deg, #193322 0%, #25432f 58%, #365638 100%);
             color: var(--white);
             isolation: isolate;
         }
@@ -100,22 +100,22 @@
 
         .login-hero__content {
             max-width: 540px;
-            padding-top: 20px;
+            padding-top: 16px;
         }
 
         .login-hero__content h1 {
             margin: 0;
-            font-size: clamp(2.2rem, 3vw, 3.2rem);
+            font-size: clamp(1.9rem, 2.8vw, 2.7rem);
             line-height: 1.15;
             letter-spacing: -0.06em;
             font-weight: 700;
         }
 
         .login-hero__content p {
-            margin: 18px 0 0;
+            margin: 14px 0 0;
             max-width: 460px;
             color: rgba(255, 255, 255, 0.88);
-            font-size: 1.08rem;
+            font-size: 1rem;
             line-height: 1.7;
         }
 
@@ -125,9 +125,9 @@
             gap: 12px;
             font-size: 0.95rem;
             color: rgba(255, 255, 255, 0.9);
-            padding-top: 28px;
+            padding-top: 22px;
             border-top: 1px solid rgba(255, 255, 255, 0.22);
-            margin-top: 32px;
+            margin-top: 24px;
         }
 
         .login-hero__footer::before {
@@ -141,34 +141,34 @@
 
         .login-panel {
             background: #f8faf7;
-            padding: 30px 44px 28px;
+            padding: 24px 36px 22px;
             display: flex;
             flex-direction: column;
         }
 
         .login-return {
-            color: #1f2b25;
+            color: var(--green-900);
             text-decoration: none;
             font-size: 0.95rem;
             font-weight: 600;
             display: inline-flex;
             align-items: center;
             gap: 8px;
-            margin-bottom: 28px;
+            margin-bottom: 20px;
         }
 
         .login-brand {
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 16px;
-            margin-bottom: 22px;
-            padding-top: 10px;
+            gap: 12px;
+            margin-bottom: 18px;
+            padding-top: 6px;
         }
 
         .login-brand img {
-            width: 54px;
-            height: 54px;
+            width: 46px;
+            height: 46px;
             border-radius: 50%;
             object-fit: cover;
             box-shadow: 0 8px 22px rgba(38, 72, 44, 0.15);
@@ -181,16 +181,16 @@
 
         .login-brand__meta strong {
             display: block;
-            font-size: 2rem;
+            font-size: 1.7rem;
             letter-spacing: -0.05em;
-            color: #20462f;
+            color: var(--green-900);
         }
 
         .login-brand__meta span {
             display: block;
             font-size: 0.72rem;
             letter-spacing: 0.18em;
-            color: rgba(32, 70, 47, 0.7);
+            color: rgba(25, 51, 34, 0.7);
             text-transform: uppercase;
         }
 
@@ -201,23 +201,23 @@
 
         .login-header h2 {
             margin: 0;
-            color: #1a2f27;
-            font-size: clamp(1.8rem, 2vw, 2.45rem);
+            color: var(--green-900);
+            font-size: clamp(1.55rem, 1.8vw, 2rem);
             line-height: 1.2;
             letter-spacing: -0.05em;
         }
 
         .login-header p {
-            margin: 12px 0 0;
-            color: #5b6b63;
-            font-size: 1rem;
+            margin: 8px 0 0;
+            color: var(--muted);
+            font-size: 0.95rem;
             line-height: 1.6;
         }
 
         .login-form {
-            margin-top: 18px;
+            margin-top: 14px;
             display: grid;
-            gap: 18px;
+            gap: 14px;
         }
 
         .field-group {
@@ -228,7 +228,7 @@
         .field-group label {
             display: block;
             color: #283b31;
-            font-size: 0.98rem;
+            font-size: 0.92rem;
             font-weight: 600;
         }
 
@@ -239,7 +239,7 @@
             border: 1px solid #d5ddd4;
             border-radius: 12px;
             background: #ffffff;
-            min-height: 52px;
+            min-height: 48px;
             overflow: hidden;
         }
 
@@ -292,19 +292,15 @@
         }
 
         .captcha-code {
-            min-width: 90px;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            height: 36px;
-            padding: 0 12px;
-            border-radius: 10px;
-            background: #edf7ea;
-            border: 1px solid #cfe2d0;
-            color: #1d3d2d;
-            font-weight: 800;
-            font-size: 1.2rem;
-            letter-spacing: 0.08em;
+        display: block;
+        width: 150px;
+        min-width: 150px;
+        height: 42px;
+        padding: 0;
+        object-fit: fill;
+        border: 1px solid #dce9ce;
+        border-radius: 8px;
+        background: #edf7dd;
         }
 
         .captcha-box input {
@@ -322,7 +318,7 @@
             border: 1px solid #d8e1d9;
             border-radius: 10px;
             background: #f4f8f5;
-            color: #365947;
+            color: var(--green-700);
             font-size: 1.1rem;
             cursor: pointer;
         }
@@ -339,8 +335,8 @@
             display: inline-flex;
             align-items: center;
             gap: 8px;
-            color: #415b51;
-            font-size: 0.95rem;
+            color: var(--muted);
+            font-size: 0.9rem;
         }
 
         .remember-me input {
@@ -350,9 +346,9 @@
         }
 
         .login-options a {
-            color: #274c3b;
+            color: var(--green-800);
             text-decoration: none;
-            font-size: 0.95rem;
+            font-size: 0.9rem;
             font-weight: 600;
         }
 
@@ -360,32 +356,32 @@
             width: 100%;
             appearance: none;
             border: 0;
-            border-radius: 12px;
-            background: linear-gradient(135deg, #507e4c, #4a8d4d 55%, #6fa835);
+            border-radius: 10px;
+            background: var(--green-500);
             color: #ffffff;
-            min-height: 54px;
-            font-size: 1.05rem;
+            min-height: 48px;
+            font-size: 0.98rem;
             font-weight: 800;
             letter-spacing: 0.01em;
             cursor: pointer;
-            box-shadow: 0 12px 24px rgba(76, 140, 88, 0.25);
+            box-shadow: 0 8px 18px rgba(127, 173, 57, 0.22);
             transition: transform 0.2s ease, box-shadow 0.2s ease;
         }
 
         .login-submit:hover {
             transform: translateY(-1px);
-            box-shadow: 0 14px 28px rgba(76, 140, 88, 0.32);
+            box-shadow: 0 10px 22px rgba(127, 173, 57, 0.28);
         }
 
         .login-help {
             text-align: center;
-            color: #4e635a;
-            font-size: 0.92rem;
+            color: var(--muted);
+            font-size: 0.88rem;
             margin: -2px 0 0;
         }
 
         .login-help a {
-            color: #224e39;
+            color: var(--green-800);
             font-weight: 700;
             text-decoration: none;
         }
@@ -393,15 +389,503 @@
         @media (max-width: 920px) {
             .login-shell {
                 grid-template-columns: 1fr;
+                width: min(680px, 100%);
+                min-height: 0;
             }
 
             .login-panel {
-                padding-inline: 22px;
+                padding: 24px 28px;
             }
 
             .login-hero {
-                min-height: 360px;
-                padding: 28px 22px 22px;
+                min-height: 260px;
+                padding: 24px 28px 20px;
+            }
+
+            .login-hero__content {
+                padding-top: 24px;
+            }
+
+            .login-hero__footer {
+                margin-top: 20px;
+                padding-top: 16px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            body {
+                padding: 12px;
+            }
+
+            .login-shell {
+                border-radius: 18px;
+            }
+
+            .login-hero {
+                min-height: 230px;
+                padding: 20px 20px 18px;
+            }
+
+            .login-hero__content h1 {
+                font-size: 1.8rem;
+            }
+
+            .login-panel {
+                padding: 20px;
+            }
+
+            .login-brand {
+                justify-content: flex-start;
+            }
+
+            .login-header h2 {
+                font-size: 1.55rem;
+            }
+
+            .captcha-box {
+                gap: 8px;
+                padding-inline: 8px;
+            }
+
+            .captcha-code {
+            width: 200px;
+            min-width: 200px;
+            height: 65px;
+            padding: 0;
+            }
+
+            .captcha-box input {
+                min-width: 0;
+                font-size: 0.9rem;
+            }
+
+            .login-options {
+                align-items: flex-start;
+                gap: 10px;
+                flex-direction: column;
+            }
+        }
+    </style>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@500;600;700&family=Figtree:wght@400;500;600;700&display=swap');
+
+        :root {
+            --login-forest: var(--home-forest, #193322);
+            --login-leaf: var(--brand, #7fad39);
+            --login-paper: #f3f6ee;
+            --login-text: #15241c;
+            --login-muted: #52635a;
+            --login-line: #cfdacd;
+            --login-error: #b42318;
+        }
+
+        html,
+        body {
+            min-height: 100%;
+            margin: 0;
+            background: var(--login-paper);
+            color: var(--login-text);
+            font-family: 'Figtree', sans-serif;
+        }
+
+        body {
+            display: grid;
+            min-height: 100vh;
+            min-height: 100svh;
+            place-items: center;
+            padding: 20px;
+        }
+
+        .login-shell {
+            display: grid;
+            grid-template-columns: 42% 58%;
+            width: min(1040px, 100%);
+            min-height: 520px;
+            overflow: hidden;
+            border: 1px solid rgba(14, 59, 43, .08);
+            border-radius: 30px;
+            background: #fff;
+            box-shadow: 0 18px 48px rgba(21, 36, 28, .1);
+        }
+
+        .login-hero {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 44px;
+            overflow: hidden;
+            isolation: isolate;
+            background: var(--login-forest);
+            color: #fff;
+            text-align: center;
+        }
+
+        .login-hero::before,
+        .login-hero::after {
+            content: none;
+        }
+
+        .login-hero__content {
+            max-width: 390px;
+            padding: 0;
+        }
+
+        .login-hero__eyebrow {
+            margin: 0 0 12px;
+            color: #b8d98b;
+            font-size: .75rem;
+            font-weight: 800;
+            letter-spacing: .16em;
+        }
+
+        .login-hero__content h1 {
+            margin: 0;
+            color: #fff;
+            font-family: 'Bricolage Grotesque', sans-serif;
+            font-size: clamp(2rem, 3vw, 2.5rem);
+            font-weight: 700;
+            letter-spacing: -.045em;
+            line-height: 1.12;
+            text-align: center;
+        }
+
+        .login-hero__content h1 span {
+            color: var(--login-leaf);
+        }
+
+        .login-hero__content p {
+            max-width: 370px;
+            margin: 16px auto 0;
+            color: rgba(255, 255, 255, .84);
+            font-size: 1rem;
+            line-height: 1.6;
+            text-align: center;
+        }
+
+        .login-panel {
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 0;
+            padding: 62px 48px 32px;
+            background: #fff;
+        }
+
+        .login-return {
+            position: absolute;
+            top: 24px;
+            left: 40px;
+            display: inline-flex;
+            min-height: 32px;
+            align-items: center;
+            gap: 7px;
+            margin: 0;
+            color: var(--login-muted);
+            font-size: .86rem;
+            font-weight: 600;
+            text-decoration: none;
+        }
+
+        .login-return:hover {
+            color: var(--login-forest);
+        }
+
+        .login-return svg,
+        .field-icon svg,
+        .toggle-password svg,
+        .captcha-refresh svg {
+            display: block;
+            width: 20px;
+            height: 20px;
+            flex: 0 0 20px;
+            fill: none;
+            stroke: currentColor;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            stroke-width: 1.8;
+        }
+
+        .login-content {
+            width: min(100%, 400px);
+            margin: auto;
+        }
+
+        .login-brand {
+            display: flex;
+            justify-content: flex-start;
+            margin: 0 0 16px;
+            padding: 0;
+        }
+
+        .login-brand img {
+            display: block;
+            width: 152px;
+            height: 44px;
+            border-radius: 0;
+            object-fit: contain;
+            box-shadow: none;
+        }
+
+        .login-header {
+            margin: 0;
+            text-align: left;
+        }
+
+        .login-header h2 {
+            margin: 0;
+            color: var(--login-text);
+            font-family: 'Bricolage Grotesque', sans-serif;
+            font-size: clamp(1.65rem, 2.4vw, 1.9rem);
+            font-weight: 700;
+            letter-spacing: -.04em;
+            line-height: 1.15;
+        }
+
+        .login-header p {
+            margin: 7px 0 0;
+            color: var(--login-muted);
+            font-size: .92rem;
+            line-height: 1.45;
+        }
+
+        .login-form {
+            display: grid;
+            gap: 13px;
+            margin-top: 16px;
+        }
+
+        .login-summary {
+            margin: 0;
+            padding: 10px 12px;
+            border: 1px solid rgba(180, 35, 24, .2);
+            border-radius: 12px;
+            background: #fef3f2;
+            color: #8a1c13;
+            font-size: .84rem;
+            line-height: 1.4;
+        }
+
+        .login-summary[hidden] {
+            display: none;
+        }
+
+        .field-group {
+            display: grid;
+            min-width: 0;
+            gap: 6px;
+        }
+
+        .field-group label {
+            display: block;
+            color: #25382d;
+            font-size: .875rem;
+            font-weight: 700;
+        }
+
+        .input-wrap {
+            display: flex;
+            min-width: 0;
+            min-height: 48px;
+            align-items: center;
+            overflow: hidden;
+            border: 1px solid var(--login-line);
+            border-radius: 14px;
+            background: #fff;
+        }
+
+        .input-wrap:focus-within,
+        .captcha-box:focus-within {
+            border-color: #6a9632;
+            box-shadow: 0 0 0 3px rgba(106, 150, 50, .2);
+        }
+
+        .input-wrap:has(input[aria-invalid="true"]),
+        .captcha-box:has(input[aria-invalid="true"]) {
+            border-color: var(--login-error);
+        }
+
+        .field-icon {
+            display: grid;
+            width: 44px;
+            height: 46px;
+            flex: 0 0 44px;
+            place-items: center;
+            color: #607367;
+        }
+
+        .input-wrap input,
+        .captcha-box input {
+            width: 100%;
+            min-width: 0;
+            height: 46px;
+            padding: 0 12px 0 0;
+            border: 0;
+            outline: 0;
+            background: transparent;
+            color: var(--login-text);
+            font: inherit;
+            font-size: .95rem;
+        }
+
+        .input-wrap input::placeholder,
+        .captcha-box input::placeholder {
+            color: #66776c;
+            opacity: 1;
+        }
+
+        .toggle-password,
+        .captcha-refresh {
+            display: grid;
+            width: 44px;
+            height: 44px;
+            flex: 0 0 44px;
+            place-items: center;
+            border: 0;
+            background: transparent;
+            color: var(--login-muted);
+            cursor: pointer;
+        }
+
+        .toggle-password:hover,
+        .captcha-refresh:hover {
+            color: var(--login-forest);
+        }
+
+        .toggle-password:focus-visible,
+        .captcha-refresh:focus-visible,
+        .login-submit:focus-visible,
+        .login-return:focus-visible {
+            outline: 3px solid var(--login-leaf);
+            outline-offset: 3px;
+        }
+
+        .captcha-box {
+        display: grid;
+        grid-template-columns: 150px minmax(0, 1fr) 36px;
+        min-width: 0;
+        min-height: 50px;
+        align-items: center;
+        gap: 8px;
+        padding: 3px 8px;
+        border: 1px solid var(--login-line);
+        border-radius: 12px;
+        background: #fff;
+        }
+
+        .captcha-code {
+        display: block;
+        width: 150px;
+        min-width: 150px;
+        height: 42px;
+        padding: 0;
+        object-fit: fill;
+        border: 1px solid #dce9ce;
+        border-radius: 8px;
+        background: #edf7dd;
+        }
+
+        .captcha-box input {
+            padding: 0 2px;
+        }
+
+        .captcha-refresh {
+            width: 40px;
+            height: 40px;
+            flex-basis: 40px;
+            border: 1px solid #dce4d5;
+            border-radius: 10px;
+            background: #f7f9f4;
+        }
+
+        .field-error {
+            margin: 0;
+            color: var(--login-error);
+            font-size: .8rem;
+            line-height: 1.35;
+        }
+
+        .login-submit {
+            width: 100%;
+            min-height: 48px;
+            margin-top: 2px;
+            border: 0;
+            border-radius: 999px;
+            background: var(--login-leaf);
+            color: #14251b;
+            font: inherit;
+            font-size: .95rem;
+            font-weight: 800;
+            cursor: pointer;
+            transition: transform .15s ease, background-color .15s ease;
+        }
+
+        .login-submit:hover {
+            transform: translateY(-1px);
+            background: #91bb50;
+        }
+
+        .login-submit:disabled {
+            cursor: wait;
+            opacity: .75;
+        }
+
+        @media (prefers-reduced-motion: no-preference) {
+            .login-shell {
+                animation: login-enter .55s cubic-bezier(.2, .8, .2, 1) both;
+            }
+
+            @keyframes login-enter {
+                from { opacity: 0; transform: translateY(12px); }
+                to { opacity: 1; transform: translateY(0); }
+            }
+        }
+
+        @media (max-width: 1023px) {
+            .login-shell {
+                grid-template-columns: 1fr;
+                width: min(520px, 100%);
+                min-height: 0;
+            }
+
+            .login-hero {
+                display: none;
+            }
+
+            .login-panel {
+                min-height: 0;
+                padding: 64px 28px 28px;
+            }
+
+            .login-return {
+                top: 18px;
+                left: 24px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            body {
+                padding: 12px;
+            }
+
+            .login-shell {
+                border-radius: 22px;
+            }
+
+            .login-panel {
+                padding: 60px 20px 22px;
+            }
+
+            .login-return {
+                left: 20px;
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .login-submit {
+                transition: none;
             }
         }
     </style>
@@ -409,110 +893,138 @@
 <body>
     <main class="login-shell" aria-label="Halaman masuk anggota">
         <section class="login-hero" aria-label="Layanan anggota">
-            <div class="login-hero__mark" aria-hidden="true">◌</div>
-
             <div class="login-hero__content">
-                <h1>Layanan anggota dalam satu akses.</h1>
+                <p class="login-hero__eyebrow">UNTUK ANGGOTA</p>
+                <h1>Layanan anggota dalam <span>satu akses.</span></h1>
                 <p>
                     Pantau simpanan, pinjaman, SHU, dan pesanan produk melalui akun anggota Primkop.
                 </p>
             </div>
-
-            <div class="login-hero__footer">Akun dikelola oleh admin Primkop</div>
         </section>
 
         <section class="login-panel" aria-label="Form masuk akun anggota">
-            <a class="login-return" href="{{ route('home') }}">&lt; Kembali ke beranda</a>
+            <a class="login-return" href="{{ route('home') }}">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m14 18-6-6 6-6"></path><path d="M8 12h12"></path></svg>
+                <span>Kembali ke beranda</span>
+            </a>
 
-            <div class="login-brand" aria-label="Logo Primkop">
-                <img src="{{ asset('assets/images/logo/Logo PRIMKOP.png') }}" alt="Logo Primkop">
-                <div class="login-brand__meta">
-                    <strong>PRIMKOP</strong>
-                    <span>Member Portal</span>
+            <div class="login-content">
+                <div class="login-brand" aria-label="Logo Primkop">
+                    <img src="{{ asset('assets/images/logo/Logo PRIMKOP.png') }}" alt="Logo Primkop">
                 </div>
+
+                <div class="login-header">
+                    <h2>Masuk ke akun anggota</h2>
+                    <p>Masuk dengan NRP/NIP yang terdaftar.</p>
+                </div>
+
+                <form class="login-form" method="POST" action="{{ route('login.submit') }}" id="loginForm">
+                    @csrf
+
+                    <div class="login-summary" role="alert" data-login-alert @if (!$errors->any()) hidden @endif>
+                        @if ($errors->any())
+                            Periksa kembali data yang ditandai lalu coba masuk kembali.
+                        @endif
+                    </div>
+
+                    <div class="field-group">
+                        <label for="memberId">NRP / NIP</label>
+                        <div class="input-wrap">
+                            <span class="field-icon" aria-hidden="true">
+                                <svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.5"></circle><path d="M5 20c.5-3.5 2.8-5.3 7-5.3s6.5 1.8 7 5.3"></path></svg>
+                            </span>
+                            <input id="memberId" name="member_id" type="text" placeholder="Masukkan NRP / NIP" autocomplete="username" value="{{ old('member_id') }}" required @if ($errors->has('member_id')) aria-invalid="true" aria-describedby="memberIdError" @endif>
+                        </div>
+                        @if ($errors->has('member_id'))
+                            <p class="field-error" id="memberIdError">NRP/NIP wajib diisi dan maksimal 255 karakter.</p>
+                        @endif
+                    </div>
+
+                    <div class="field-group">
+                        <label for="password">Kata sandi</label>
+                        <div class="input-wrap">
+                            <span class="field-icon" aria-hidden="true">
+                                <svg viewBox="0 0 24 24"><rect x="4" y="10" width="16" height="11" rx="2"></rect><path d="M8 10V7a4 4 0 0 1 8 0v3"></path><path d="M12 14v3"></path></svg>
+                            </span>
+                            <input id="password" name="password" type="password" placeholder="Masukkan kata sandi" autocomplete="current-password" required @if ($errors->has('password')) aria-invalid="true" aria-describedby="passwordError" @endif>
+                            <button type="button" class="toggle-password" aria-label="Tampilkan kata sandi" data-toggle-password>
+                                <svg viewBox="0 0 24 24" data-eye-open aria-hidden="true"><path d="M2.5 12s3.2-6 9.5-6 9.5 6 9.5 6-3.2 6-9.5 6-9.5-6-9.5-6Z"></path><circle cx="12" cy="12" r="2.5"></circle></svg>
+                                <svg viewBox="0 0 24 24" data-eye-closed aria-hidden="true" hidden><path d="M3 3l18 18"></path><path d="M10.6 6.2A10.7 10.7 0 0 1 12 6c6.3 0 9.5 6 9.5 6a15 15 0 0 1-3.1 3.8"></path><path d="M6.2 6.2C3.8 7.8 2.5 12 2.5 12s3.2 6 9.5 6c1 0 2-.2 2.8-.5"></path><path d="M9.9 9.9a3 3 0 0 0 4.2 4.2"></path></svg>
+                            </button>
+                        </div>
+                        @if ($errors->has('password'))
+                            <p class="field-error" id="passwordError">Kata sandi wajib diisi dan minimal 4 karakter.</p>
+                        @endif
+                    </div>
+
+                    <div class="field-group">
+                        <label for="captchaInput">Kode verifikasi</label>
+                        <div class="captcha-box">
+                            <img src="{{ route('login.captcha') }}" id="captchaCode" alt="Kode verifikasi CAPTCHA" class="captcha-code">
+                            <input type="text" name="captcha" id="captchaInput" placeholder="Kode pada gambar" inputmode="text" autocomplete="off" autocapitalize="characters" spellcheck="false" maxlength="6" value="{{ old('captcha') }}" required @if ($errors->has('captcha')) aria-invalid="true" aria-describedby="captchaError" @endif>
+                            <button type="button" class="captcha-refresh" id="refreshCaptcha" aria-label="Segarkan kode verifikasi">
+                                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 7v5h-5"></path><path d="M19 12a7 7 0 0 0-12-5L5 9"></path><path d="M4 17v-5h5"></path><path d="M5 12a7 7 0 0 0 12 5l2-2"></path></svg>
+                            </button>
+                        </div>
+                        @if ($errors->has('captcha'))
+                            <p class="field-error" id="captchaError">Kode verifikasi salah atau belum lengkap. Periksa kode, lalu coba lagi.</p>
+                        @endif
+                    </div>
+
+                    <button class="login-submit" type="submit"><span data-submit-label>Masuk</span></button>
+                </form>
             </div>
-
-            <div class="login-header">
-                <h2>Masuk ke akun anggota</h2>
-                <p>Gunakan ID anggota yang telah didaftarkan oleh admin.</p>
-            </div>
-
-            <form class="login-form" method="POST" action="{{ route('login.submit') }}" id="loginForm">
-                @csrf
-
-                @if ($errors->any())
-                    <div role="alert" style="padding: 10px 12px; border-radius: 10px; background: rgba(196, 82, 73, 0.08); border: 1px solid rgba(196, 82, 73, 0.2); color: #8a2d2d; font-size: 0.9rem;">
-                        {{ $errors->first() }}
-                    </div>
-                @endif
-
-                <div class="field-group">
-                    <label for="memberId">ID Anggota / NIP</label>
-                    <div class="input-wrap">
-                        <span class="field-icon" aria-hidden="true">◌</span>
-                        <input id="memberId" name="member_id" type="text" placeholder="Masukkan ID anggota" autocomplete="username" value="{{ old('member_id') }}" required>
-                    </div>
-                </div>
-
-                <div class="field-group">
-                    <label for="password">Kata Sandi</label>
-                    <div class="input-wrap">
-                        <span class="field-icon" aria-hidden="true">◈</span>
-                        <input id="password" name="password" type="password" placeholder="Masukkan kata sandi" autocomplete="current-password" value="{{ old('password') }}" required>
-                        <button type="button" class="toggle-password" aria-label="Lihat kata sandi" data-toggle-password>lihat</button>
-                    </div>
-                </div>
-
-                <div class="field-group">
-                    <label>Verifikasi keamanan</label>
-                    <div class="captcha-box">
-                        <div class="captcha-code" id="captchaQuestion" aria-live="polite">{{ $captchaQuestion ?? '8 + 4' }}</div>
-                        <input type="text" name="captcha" id="captchaInput" placeholder="Hasil perhitungan" inputmode="numeric" aria-label="Masukkan jawaban captcha" value="{{ old('captcha') }}" required>
-                        <button type="button" class="captcha-refresh" id="refreshCaptcha" aria-label="Refresh captcha">↻</button>
-                    </div>
-                </div>
-
-                <div class="login-options">
-                    <label class="remember-me">
-                        <input type="checkbox" name="remember">
-                        <span>Ingat akun saya</span>
-                    </label>
-                    <a href="{{ route('home') }}">Lupa kata sandi?</a>
-                </div>
-
-                <button class="login-submit" type="submit">Masuk</button>
-            </form>
-
-            <p class="login-help">Belum memiliki akses? <a href="{{ route('contact') }}">Hubungi admin</a>.</p>
         </section>
     </main>
 
     <script>
-        const captchaQuestion = document.getElementById('captchaQuestion');
+        const captchaCode = document.getElementById('captchaCode');
         const captchaInput = document.getElementById('captchaInput');
         const refreshCaptchaButton = document.getElementById('refreshCaptcha');
+        const loginAlert = document.querySelector('[data-login-alert]');
+        const loginForm = document.getElementById('loginForm');
 
-        async function refreshCaptcha() {
-            const response = await fetch('{{ route('login.captcha') }}');
-            if (!response.ok) {
-                throw new Error('Captcha tidak dapat diperbarui.');
-            }
+        async function refreshCaptcha(shouldFocus = true) {
+    captchaCode.src = "{{ route('login.captcha') }}?t=" + Date.now();
+    captchaInput.value = '';
 
-            const data = await response.json();
-            captchaQuestion.textContent = data.question;
-            captchaInput.value = '';
-            captchaInput.focus();
+    if (shouldFocus) {
+        captchaInput.focus();
+    }
         }
 
-        refreshCaptchaButton.addEventListener('click', refreshCaptcha);
+        function showCaptchaError(error) {
+            loginAlert.textContent = error.message;
+            loginAlert.hidden = false;
+        }
+
+        refreshCaptchaButton.addEventListener('click', function () {
+            refreshCaptcha().catch(showCaptchaError);
+        });
 
         document.querySelector('[data-toggle-password]').addEventListener('click', function () {
             const passwordInput = document.getElementById('password');
             const isPassword = passwordInput.type === 'password';
             passwordInput.type = isPassword ? 'text' : 'password';
-            this.textContent = isPassword ? 'sembunyikan' : 'lihat';
+            this.setAttribute('aria-label', isPassword ? 'Sembunyikan kata sandi' : 'Tampilkan kata sandi');
+            this.querySelector('[data-eye-open]').hidden = isPassword;
+            this.querySelector('[data-eye-closed]').hidden = !isPassword;
         });
 
+        loginForm.addEventListener('submit', function () {
+            const submitButton = loginForm.querySelector('.login-submit');
+            submitButton.disabled = true;
+            submitButton.querySelector('[data-submit-label]').textContent = 'Memproses...';
+        });
+
+        const firstInvalidField = document.querySelector('.login-form [aria-invalid="true"]');
+        if (firstInvalidField) {
+            firstInvalidField.focus();
+        }
+
+        @if ($errors->any())
+            refreshCaptcha(false).catch(showCaptchaError);
+        @endif
     </script>
 </body>
 </html>

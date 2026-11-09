@@ -22,7 +22,11 @@
             <a class="cart-link" href="{{ route('products.index') }}" aria-label="Jelajahi produk">
                 <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 4h2l2.1 10.1a2 2 0 0 0 2 1.6h8.8a2 2 0 0 0 1.9-1.4L22 8H6M10 20a1 1 0 1 1-2 0 1 1 0 0 1 2 0Zm9 0a1 1 0 1 1-2 0 1 1 0 0 1 2 0Z"/></svg>
             </a>
-            <a class="button button--login" href="{{ url('/login') }}">Masuk</a>
+            @if (!session('member.authenticated'))
+                <a class="button button--login" href="{{ url('/login') }}">Masuk</a>
+            @elseif (!request()->routeIs('anggota.*'))
+                <a class="button button--login" href="{{ route('anggota.dashboard') }}">Dashboard</a>
+            @endif
         </div>
     </div>
 </header>

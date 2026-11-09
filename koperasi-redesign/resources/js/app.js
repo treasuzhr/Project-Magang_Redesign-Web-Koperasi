@@ -6,6 +6,11 @@ import './landing/news-interactions.js';
 import { initMotion } from './modules/motion.js';
 import './landing/scroll-statement.js';
 import './landing/service-stack.js';
+import './modules/member-tables.js';
+import './modules/loan-application.js';
+import './modules/shu-chart.js';
+import './modules/member-password.js';
+import './modules/member-avatar.js';
 
 initMotion();
 

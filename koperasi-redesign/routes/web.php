@@ -88,42 +88,124 @@ Route::get('/produk', function () {
     ]);
 })->name('products.index');
 
+$generateLoginCaptcha = static function (): string {
+    $characters = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+    $code = '';
+
+    for ($index = 0; $index < 6; $index++) {
+        $code .= $characters[random_int(0, strlen($characters) - 1)];
+    }
+
+    return $code;
+};
+
 Route::get('/login', function () {
     if (session()->get('member.authenticated')) {
         return redirect()->route('anggota.dashboard');
     }
 
-    $left = random_int(2, 9);
-    $right = random_int(2, 9);
-    session()->put('captcha_answer', $left + $right);
-    session()->put('captcha_question', "$left + $right");
-
-    return view('login', ['captchaQuestion' => "$left + $right"]);
+    return view('login');
 })->name('login');
 
-Route::get('/login/captcha', function () {
-    $left = random_int(2, 9);
-    $right = random_int(2, 9);
-    $answer = $left + $right;
+Route::get('/login/captcha', function () use ($generateLoginCaptcha) {
+    $captchaCode = $generateLoginCaptcha();
+    session()->put('captcha_answer', $captchaCode);
 
-    session()->put('captcha_answer', $answer);
+    $image = imagecreatetruecolor(180, 60);
 
-    return response()->json([
-        'question' => "$left + $right",
-    ]);
+    $background = imagecolorallocate($image, 245, 247, 250);
+    $textColor = imagecolorallocate($image, 40, 50, 65);
+    $noiseColor = imagecolorallocate($image, 180, 190, 200);
+
+    imagefill($image, 0, 0, $background);
+
+    for ($i = 0; $i < 8; $i++) {
+        imageline(
+            $image,
+            random_int(0, 240),
+            random_int(0, 75),
+            random_int(0, 240),
+            random_int(0, 75),
+            $noiseColor
+        );
+    }
+
+    $fontPath = 'C:/Windows/Fonts/segoepr.ttf';
+$fontSize = 20;
+
+$bbox = imagettfbbox($fontSize, 0, $fontPath, $captchaCode);
+
+$textWidth = $bbox[2] - $bbox[0];
+$textHeight = $bbox[1] - $bbox[7];
+
+$x = (180 - $textWidth) / 2;
+$y = (60 + $textHeight) / 2;
+
+$colors = [
+    imagecolorallocatealpha($image, 39, 112, 76, 25),
+    imagecolorallocatealpha($image, 43, 105, 170, 25),
+    imagecolorallocatealpha($image, 210, 125, 43, 25),
+    imagecolorallocatealpha($image, 183, 65, 82, 25),
+    imagecolorallocatealpha($image, 35, 135, 135, 25),
+    imagecolorallocatealpha($image, 120, 85, 160, 25)
+];
+
+    $charSpacing = 27;
+    $startX = (180 - (strlen($captchaCode) * $charSpacing)) / 2;
+
+    for ($i = 0; $i < strlen($captchaCode); $i++) {
+    $angle = random_int(-22, 22);
+    $positionX = $startX + ($i * $charSpacing) + random_int(-3, 3);
+    $positionY = $y + random_int(-8, 8);
+    $randomFontSize = $fontSize + random_int(-2, 2);
+
+    imagettftext(
+        $image,
+        $randomFontSize,
+        $angle,
+        (int) $positionX,
+        (int) $positionY,
+        $colors[$i % count($colors)],
+        $fontPath,
+        $captchaCode[$i]
+    );
+}
+
+    for ($i = 0; $i < 5; $i++) {
+    $noiseColor = imagecolorallocate($image, 150, 160, 150);
+
+    imageline(
+        $image,
+        random_int(0, 180),
+        random_int(0, 60),
+        random_int(0, 180),
+        random_int(0, 60),
+        $noiseColor
+    );
+}
+
+    ob_start();
+    imagepng($image);
+    $imageData = ob_get_clean();
+
+    imagedestroy($image);
+
+    return response($imageData)
+        ->header('Content-Type', 'image/png')
+        ->header('Cache-Control', 'no-store, no-cache, must-revalidate');
 })->name('login.captcha');
 
 Route::post('/login', function (Request $request) {
     $request->validate([
         'member_id' => ['required', 'string', 'max:255'],
         'password' => ['required', 'string', 'min:4'],
-        'captcha' => ['required', 'numeric'],
+        'captcha' => ['required', 'string', 'size:6', 'alpha_num'],
     ]);
 
-    $expected = (int) session('captcha_answer', 0);
-    $submitted = (int) $request->input('captcha');
+    $expected = (string) session('captcha_answer', '');
+    $submitted = strtoupper((string) $request->input('captcha'));
 
-    if ($expected !== $submitted || $expected === 0) {
+    if ($expected === '' || ! hash_equals($expected, $submitted)) {
         return back()->withErrors(['captcha' => 'Captcha tidak sesuai.'])->withInput();
     }
 
@@ -138,6 +220,38 @@ Route::post('/login', function (Request $request) {
 })->name('login.submit');
 
 Route::get('/anggota', [App\Http\Controllers\AnggotaController::class, 'dashboard'])->name('anggota.dashboard');
+Route::get('/anggota/ubah-password', [App\Http\Controllers\AnggotaController::class, 'passwordEdit'])->name('anggota.password.edit');
+Route::post('/anggota/ubah-password', [App\Http\Controllers\AnggotaController::class, 'updatePassword'])->name('anggota.password.update');
+Route::get('/anggota/ubah-avatar', [App\Http\Controllers\AnggotaController::class, 'avatarEdit'])->name('anggota.avatar.edit');
+Route::post('/anggota/ubah-avatar', [App\Http\Controllers\AnggotaController::class, 'uploadAvatar'])->name('anggota.avatar.upload');
+Route::delete('/anggota/ubah-avatar', [App\Http\Controllers\AnggotaController::class, 'deleteAvatar'])->name('anggota.avatar.delete');
+
+Route::get('/anggota/simpanan', [App\Http\Controllers\AnggotaController::class, 'savingsRedirect'])->name('anggota.simpanan.index');
+Route::get('/anggota/simpanan/{jenis}/{tahun}', [App\Http\Controllers\AnggotaController::class, 'savingsDetail'])
+    ->whereNumber('tahun')
+    ->name('anggota.simpanan.detail');
+Route::get('/anggota/simpanan/{jenis}', [App\Http\Controllers\AnggotaController::class, 'savingsIndex'])
+    ->name('anggota.simpanan.tab');
+
+Route::get('/anggota/shu', [App\Http\Controllers\AnggotaController::class, 'shuIndex'])->name('anggota.shu.index');
+Route::get('/anggota/shu/{tahun}', [App\Http\Controllers\AnggotaController::class, 'shuDetail'])
+    ->whereNumber('tahun')
+    ->name('anggota.shu.detail');
+
+Route::get('/anggota/pinjaman', [App\Http\Controllers\AnggotaController::class, 'loanIndex'])->name('anggota.pinjaman.index');
+Route::get('/anggota/pinjaman/ajukan', [App\Http\Controllers\AnggotaController::class, 'loanApplication'])->name('anggota.pinjaman.ajukan');
+Route::post('/anggota/pinjaman/ajukan', [App\Http\Controllers\AnggotaController::class, 'submitLoanApplication'])->name('anggota.pinjaman.submit');
+Route::get('/anggota/pinjaman/riwayat', [App\Http\Controllers\AnggotaController::class, 'loanHistory'])->name('anggota.pinjaman.riwayat');
+
+Route::get('/anggota/pesanan', [App\Http\Controllers\AnggotaController::class, 'orderIndex'])->name('anggota.pesanan.index');
+Route::get('/anggota/pesanan/{id}', [App\Http\Controllers\AnggotaController::class, 'orderDetail'])
+    ->whereNumber('id')
+    ->name('anggota.pesanan.detail');
+
+Route::get('/anggota/dokumen', [App\Http\Controllers\AnggotaController::class, 'documentIndex'])->name('anggota.dokumen.index');
+Route::get('/anggota/dokumen/{id}/unduh', [App\Http\Controllers\AnggotaController::class, 'downloadDocument'])
+    ->whereNumber('id')
+    ->name('anggota.dokumen.download');
 
 Route::get('/anggota/segera-hadir', function () {
     return view('anggota.segera-hadir');

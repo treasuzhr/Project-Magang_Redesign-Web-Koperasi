@@ -6,9 +6,11 @@
 
 @section('member-content')
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@500;600;700&display=swap');
+
         .member-portal {
             background: #f3f6ee;
-            padding: 54px 0 80px;
+            padding: 112px 0 80px;
             overflow-x: clip;
         }
 
@@ -32,9 +34,18 @@
 
         .member-sidebar {
             position: sticky;
-            top: 98px;
+            top: 100px;
             display: grid;
             gap: 22px;
+        }
+
+        .member-icon {
+            display: block;
+            width: 20px;
+            height: 20px;
+            flex: 0 0 20px;
+            color: currentColor;
+            stroke: currentColor;
         }
 
         .member-profile {
@@ -107,11 +118,19 @@
         .member-profile__links a {
             display: inline-flex;
             align-items: center;
-            gap: 10px;
+            gap: 12px;
             color: #15241c;
             text-decoration: none;
             font-size: .88rem;
             font-weight: 600;
+        }
+
+        .member-profile__links a svg {
+            width: 20px;
+            height: 20px;
+            flex: 0 0 20px;
+            color: currentColor;
+            stroke: currentColor;
         }
 
         .member-profile__links a:hover,
@@ -142,13 +161,15 @@
         }
 
         .member-nav__item svg {
-            width: 18px;
-            height: 18px;
+            width: 20px;
+            height: 20px;
+            flex: 0 0 20px;
             color: currentColor;
+            stroke: currentColor;
         }
 
-        .member-nav__item:hover,
-        .member-nav__item:focus-visible {
+        .member-nav__item:not(.is-active):hover,
+        .member-nav__item:not(.is-active):focus-visible {
             background: #edf7dd;
             transform: translateX(2px);
         }
@@ -180,8 +201,17 @@
             color: #15241c;
             font: inherit;
             font-weight: 600;
+            line-height: 1.3;
             cursor: pointer;
             transition: transform .2s ease, background-color .2s ease;
+        }
+
+        .member-nav__logout svg {
+            width: 20px;
+            height: 20px;
+            flex: 0 0 20px;
+            color: currentColor;
+            stroke: currentColor;
         }
 
         .member-nav__logout button:hover,
@@ -245,16 +275,6 @@
             background: linear-gradient(135deg, #0e3b2b 0%, #173d2b 100%);
             border-radius: 32px;
             box-shadow: 0 18px 36px rgba(14, 59, 43, 0.15);
-        }
-
-        .member-summary::before {
-            position: absolute;
-            inset: auto -15% -38% auto;
-            width: 260px;
-            height: 260px;
-            border-radius: 50%;
-            background: rgba(127, 173, 57, 0.12);
-            content: '';
         }
 
         .member-summary__inner {
@@ -423,17 +443,20 @@
 
         .member-stat-card__icon {
             display: grid;
+            flex: 0 0 40px;
             place-items: center;
-            width: 42px;
-            height: 42px;
+            width: 40px;
+            height: 40px;
             border-radius: 14px;
             background: #edf7dd;
             color: #0e3b2b;
         }
 
         .member-stat-card__icon svg {
-            width: 18px;
-            height: 18px;
+            width: 20px;
+            height: 20px;
+            flex: 0 0 20px;
+            stroke: currentColor;
         }
 
         .member-stat-card strong {
@@ -454,6 +477,16 @@
             border-radius: 30px;
             background: #fff;
             box-shadow: 0 14px 28px rgba(21, 36, 28, 0.05);
+        }
+
+        .member-breakdown__title {
+            grid-column: 1 / -1;
+            margin: 0;
+            color: #15241c;
+            font-family: 'Bricolage Grotesque', 'DM Sans', sans-serif;
+            font-size: 1.35rem;
+            font-weight: 700;
+            letter-spacing: -.04em;
         }
 
         .member-breakdown__donut {
@@ -642,7 +675,7 @@
 
         @media (max-width: 540px) {
             .member-portal {
-                padding-top: 32px;
+                padding-top: 84px;
             }
 
             .member-stats__grid {
@@ -667,62 +700,7 @@
     </style>
 
     <div class="member-shell page-width">
-        <aside class="member-sidebar">
-            <div class="member-card member-profile">
-                <div class="member-profile__details">
-                    <div class="member-avatar" aria-label="Avatar anggota">AW</div>
-                    <h2>{{ $member['name'] }}</h2>
-                    <p class="member-profile__nip"><x-anggota.masked-id :value="$member['nip']" /></p>
-                    <div class="member-divider"></div>
-                    <span class="member-label">Jabatan</span>
-                    <span class="member-value">{{ $member['jabatan'] }}</span>
-                    <div class="member-divider"></div>
-                    <div class="member-profile__links">
-                        <a href="{{ route('anggota.soon') }}">
-                            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.75 4.5 7.5v9l7.5 3.75L19.5 16.5v-9L12 3.75Zm-6 4.5 6 3 6-3M12 11.25v8.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                            Ubah password
-                        </a>
-                        <a href="{{ route('anggota.soon') }}">
-                            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.75a5.25 5.25 0 0 1 5.25 5.25v2.2h.7a2.15 2.15 0 0 1 2.15 2.15v6.1A2.15 2.15 0 0 1 17.95 21.5h-11.9A2.15 2.15 0 0 1 3.9 19.35v-6.1A2.15 2.15 0 0 1 6.05 11.2h.7V9A5.25 5.25 0 0 1 12 3.75Zm0 1.75a3.5 3.5 0 0 0-3.5 3.5v2.2h7V9a3.5 3.5 0 0 0-3.5-3.5Z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                            Ubah avatar
-                        </a>
-                    </div>
-                </div>
-            </div>
-
-            <nav class="member-card member-nav" aria-label="Menu anggota">
-                <div class="member-nav__list">
-                    <a class="member-nav__item is-active" href="{{ route('anggota.dashboard') }}" aria-current="page">
-                        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12.5 12 4l8 8.5V20a1 1 0 0 1-1 1h-4v-7H9v7H5a1 1 0 0 1-1-1v-7.5Z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                        Dashboard
-                    </a>
-                    <a class="member-nav__item" href="{{ route('anggota.soon') }}">
-                        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7.5A2.5 2.5 0 0 1 6.5 5h11A2.5 2.5 0 0 1 20 7.5v9A2.5 2.5 0 0 1 17.5 19h-11A2.5 2.5 0 0 1 4 16.5v-9Zm2.5 0h11M8 12h8M8 15h6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                        Simpanan
-                    </a>
-                    <a class="member-nav__item" href="{{ route('anggota.soon') }}">
-                        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 8.5h14M7.5 6.5v-.5A1.5 1.5 0 0 1 9 4.5h6a1.5 1.5 0 0 1 1.5 1.5v.5M6 8.5l1.25 9h9.5L18 8.5H6Z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                        Pinjaman
-                    </a>
-                    <a class="member-nav__item" href="{{ route('anggota.soon') }}">
-                        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 18V9.5M10 18V6M15 18v-9M20 18V4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
-                        SHU
-                    </a>
-                    <a class="member-nav__item" href="{{ route('anggota.soon') }}">
-                        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7.5A2.5 2.5 0 0 1 6.5 5h11A2.5 2.5 0 0 1 20 7.5v9A2.5 2.5 0 0 1 17.5 19h-11A2.5 2.5 0 0 1 4 16.5v-9Zm3 1.5h10M8 12h8M8 15h6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                        Pesanan
-                    </a>
-                </div>
-                <div class="member-nav__divider"></div>
-                <form class="member-nav__logout" method="POST" action="{{ route('logout') }}">
-                    @csrf
-                    <button type="submit">
-                        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 7V5.75A1.75 1.75 0 0 1 10.75 4h6.5A1.75 1.75 0 0 1 19 5.75v12.5A1.75 1.75 0 0 1 17.25 20h-6.5A1.75 1.75 0 0 1 9 18.25V17M4 12h11m0 0-3-3m3 3-3 3" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                        Keluar
-                    </button>
-                </form>
-            </nav>
-        </aside>
+        <x-anggota.sidebar :member="$member" active="dashboard" />
 
         <div class="member-main">
             <header class="member-header">
@@ -732,8 +710,8 @@
                     <p class="member-header__subtitle">Ringkasan simpanan dan pinjaman Anda.</p>
                 </div>
                 <div class="member-header__actions">
-                    <a class="button button--primary" href="{{ route('anggota.soon') }}">Setor sukarela</a>
-                    <a class="button button--secondary" href="{{ route('anggota.soon') }}">Ajukan pinjaman</a>
+                    <a class="button button--primary" href="{{ route('anggota.simpanan.tab', ['jenis' => 'setor']) }}">Setor sukarela</a>
+                    <a class="button button--secondary" href="{{ route('anggota.pinjaman.ajukan') }}">Ajukan pinjaman</a>
                 </div>
             </header>
 
@@ -757,7 +735,7 @@
                             </div>
                         @endforeach
                     </div>
-                    <a class="member-summary__link" href="{{ route('anggota.soon') }}">Lihat simpanan</a>
+                    <a class="member-summary__link" href="{{ route('anggota.simpanan.tab', ['jenis' => 'pokok']) }}">Lihat simpanan</a>
                 </div>
             </section>
 
@@ -769,7 +747,7 @@
                             <article class="member-stat-card member-reveal">
                                 <div class="member-stat-card__top">
                                     <span class="member-stat-card__icon" aria-hidden="true">
-                                        <svg viewBox="0 0 24 24"><path d="M12 1.75v20M16.5 5.25c0-1.66-2.01-3-4.5-3s-4.5 1.34-4.5 3 2.01 3 4.5 3 4.5 1.34 4.5 3-2.01 3-4.5 3-4.5-1.34-4.5-3" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                                        <svg class="member-icon" viewBox="0 0 24 24"><path d="M12 1.75v20M16.5 5.25c0-1.66-2.01-3-4.5-3s-4.5 1.34-4.5 3 2.01 3 4.5 3 4.5 1.34 4.5 3-2.01 3-4.5 3-4.5-1.34-4.5-3" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
                                     </span>
                                     {{ strtoupper($item['name']) }}
                                 </div>
@@ -786,7 +764,7 @@
                             <article class="member-stat-card member-reveal">
                                 <div class="member-stat-card__top">
                                     <span class="member-stat-card__icon" aria-hidden="true">
-                                        <svg viewBox="0 0 24 24"><path d="M4 7.5A2.5 2.5 0 0 1 6.5 5h11A2.5 2.5 0 0 1 20 7.5v9A2.5 2.5 0 0 1 17.5 19h-11A2.5 2.5 0 0 1 4 16.5v-9Zm2.5 1.5h11M8 12h8M8 15h6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                                        <svg class="member-icon" viewBox="0 0 24 24"><rect x="3.5" y="6" width="17" height="12" rx="2" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M7 10h10m-10 4h4m-2-2 2-2m-2 2 2 2" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
                                     </span>
                                     {{ strtoupper($item['name']) }}
                                 </div>
@@ -798,6 +776,7 @@
             </section>
 
             <section class="member-breakdown member-card" aria-label="Komposisi simpanan">
+                <h2 class="member-breakdown__title">Komposisi simpanan</h2>
                 <div class="member-breakdown__donut">
                     <div class="member-donut" role="img" aria-label="Komposisi simpanan: pokok 1,2 persen, wajib 61,9 persen, sukarela 19,0 persen, khusus 17,9 persen.">
                         <svg viewBox="0 0 120 120" aria-hidden="true">

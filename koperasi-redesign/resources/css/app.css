@@ -4650,9 +4650,10 @@ html.js .page-home .hero__actions .button--primary span {
 .home-facts__inner {
     display: grid;
     min-height: 192px;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(2, minmax(0, 260px));
     align-items: center;
-    gap: 30px;
+    justify-content: center;
+    gap: clamp(48px, 8vw, 120px);
     border-bottom: 1px solid #e7eae3;
 }
 
@@ -4662,12 +4663,13 @@ html.js .page-home .hero__actions .button--primary span {
     min-width: 0;
     min-height: 118px;
     flex-direction: column;
-    align-items: flex-start;
+    align-items: center;
     justify-content: center;
     gap: 8px;
     margin: 0;
     padding: 16px 0 0;
     border-top: 4px solid var(--brand);
+    text-align: center;
 }
 
 .home-facts__lead strong {
@@ -4680,7 +4682,7 @@ html.js .page-home .hero__actions .button--primary span {
 
 .home-facts__lead span,
 .home-facts__inner > p span {
-    max-width: 210px;
+    max-width: 100%;
     color: var(--home-muted);
     font-size: 12px;
     line-height: 1.45;
@@ -6296,8 +6298,6 @@ html.js .home-facts.is-visible .home-facts__inner > p::before {
 @media (prefers-reduced-motion: no-preference){
 
 html.js .home-facts.is-visible .home-facts__inner > p:nth-child(2)::before { animation-delay: 120ms; } }
-@media (prefers-reduced-motion: no-preference){
-html.js .home-facts.is-visible .home-facts__inner > p:nth-child(3)::before { animation-delay: 240ms; } }
 
 @media (prefers-reduced-motion: no-preference){
 
