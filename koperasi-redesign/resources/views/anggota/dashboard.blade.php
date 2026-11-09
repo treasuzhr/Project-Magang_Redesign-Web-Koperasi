@@ -718,8 +718,8 @@
             <section class="member-summary member-card" aria-label="Total simpanan anggota">
                 <div class="member-summary__inner">
                     <span class="member-summary__label">Total simpanan</span>
-                    <strong class="member-summary__amount" data-count-value="8164614">Rp 8.164.614</strong>
-                    <div class="member-summary__bar member-animate" aria-label="Komposisi simpanan: 1,2 persen pokok, 61,9 persen wajib, 19,0 persen sukarela, 17,9 persen khusus">
+                    <strong class="member-summary__amount" data-count-value="{{ $totalSimpanan }}">Rp {{ number_format($totalSimpanan, 0, ',', '.') }}</strong>
+                    <div class="member-summary__bar member-animate" aria-label="{{ $compositionLabel }}">
                         @foreach ($composition as $segment)
                             <span class="member-summary__segment" style="background: {{ $segment['color'] }}; width: {{ $segment['percent'] }}%;" aria-hidden="true"></span>
                         @endforeach
@@ -778,7 +778,7 @@
             <section class="member-breakdown member-card" aria-label="Komposisi simpanan">
                 <h2 class="member-breakdown__title">Komposisi simpanan</h2>
                 <div class="member-breakdown__donut">
-                    <div class="member-donut" role="img" aria-label="Komposisi simpanan: pokok 1,2 persen, wajib 61,9 persen, sukarela 19,0 persen, khusus 17,9 persen.">
+                    <div class="member-donut" role="img" aria-label="{{ $compositionLabel }}">
                         <svg viewBox="0 0 120 120" aria-hidden="true">
                             <circle class="member-donut__bg" cx="60" cy="60" r="46"></circle>
                             @php
