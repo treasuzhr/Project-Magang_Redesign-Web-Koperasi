@@ -98,8 +98,10 @@ if (aboutPage) {
     const dialogInitials = dialog.querySelector('[data-dialog-initials]');
     const report = dialog.querySelector('[data-dialog-report]');
     let activeTrigger = null;
+    let openedWithKeyboard = false;
     let previousOverflow = '';
-    const openPerson = (member) => {
+    const openPerson = (member, event) => {
+        openedWithKeyboard = event.detail === 0;
         const card = member.querySelector('.org-person');
         const photo = member.querySelector('img');
         activeTrigger = member.querySelector('[data-person-open]');
@@ -126,6 +128,7 @@ if (aboutPage) {
                 event.preventDefault();
                 const parentCard = parent.querySelector('.org-person');
                 activeTrigger = parentCard;
+                openedWithKeyboard = event.detail === 0;
                 dialog.close();
                 applyFilter('all');
                 parentCard.focus({ preventScroll: true });
@@ -141,7 +144,7 @@ if (aboutPage) {
         document.documentElement.style.overflow = 'hidden';
         dialog.showModal();
     };
-    members.forEach((member) => member.querySelector('.org-person').addEventListener('click', () => openPerson(member)));
+    members.forEach((member) => member.querySelector('.org-person').addEventListener('click', (event) => openPerson(member, event)));
     dialog.querySelector('[data-dialog-close]').addEventListener('click', () => dialog.close());
     dialog.addEventListener('click', (event) => {
         if (event.target === dialog) {
@@ -154,6 +157,7 @@ if (aboutPage) {
     dialog.addEventListener('close', () => {
         document.documentElement.style.overflow = previousOverflow;
         activeTrigger?.focus({ preventScroll: true });
+        if (!openedWithKeyboard) activeTrigger?.blur();
     });
 
     // Network failures use the same initials fallback as missing server-side photos.

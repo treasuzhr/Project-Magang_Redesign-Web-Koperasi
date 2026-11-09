@@ -10,7 +10,7 @@
         <img src="{{ asset($article['image']) }}" alt="{{ $article['title'] }}" loading="lazy">
     </a>
     <div class="news-card__body">
-        <div class="news-card__meta"><time datetime="{{ $article['datetime'] }}">{{ $article['date'] }}</time><span>{{ $article['reading_minutes'] }} menit baca</span></div>
+        <div class="news-card__meta"><time datetime="{{ $article['datetime'] }}">{{ $article['date'] }}</time></div>
         <h3><a href="{{ $articleUrl }}"><span class="u">{{ $article['title'] }}</span></a></h3>
         <p>{{ $article['summary'] ?? $article['excerpt'] }}</p>
         <a class="news-card__more" href="{{ $articleUrl }}">Baca selengkapnya</a>

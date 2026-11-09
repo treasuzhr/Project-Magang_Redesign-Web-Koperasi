@@ -1,7 +1,8 @@
+import './landing/count-up.js';
+import { initCartBadge } from './modules/cart-badge.js';
 import './landing/about-effects.js';
 import './landing/ambient-effects.js';
 import './landing/category-showcase.js';
-import './landing/count-up.js';
 import './landing/news-interactions.js';
 import { initMotion } from './modules/motion.js';
 import './landing/scroll-statement.js';
@@ -176,3 +177,5 @@ if (siteHeader) {
         }
     }, { passive: true });
 }
+
+initCartBadge();
