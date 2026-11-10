@@ -1,11 +1,15 @@
-@props(['tableId', 'caption', 'columns', 'rows', 'emptyText' => 'Belum ada data.', 'title' => null, 'stackMobile' => false, 'showControls' => true, 'footerRows' => [], 'tableClass' => ''])
+@props(['tableId', 'caption', 'columns', 'rows', 'emptyText' => 'Belum ada data.', 'title' => null, 'stackMobile' => false, 'showControls' => true, 'footerRows' => [], 'tableClass' => '', 'paginator' => null])
 
-<section class="member-table-card member-reveal" data-reveal @if ($showControls) data-member-table="{{ $tableId }}" @endif>
+<section class="member-table-card member-reveal" data-reveal @if ($showControls && $paginator === null) data-member-table="{{ $tableId }}" @endif>
     @if ($title !== null)
         <h2 class="member-table-card__title">{{ $title }}</h2>
     @endif
     @if ($showControls)
-        <x-anggota.table-controls :table-id="$tableId" :total="count($rows)" position="top" />
+        @if ($paginator !== null)
+            <x-anggota.server-table-controls :table-id="$tableId" :paginator="$paginator" position="top" />
+        @else
+            <x-anggota.table-controls :table-id="$tableId" :total="count($rows)" position="top" />
+        @endif
     @endif
     <div class="member-table-wrap{{ $stackMobile ? ' member-form-table-wrap' : '' }}">
         <table @class(['member-table', 'member-table--stack-mobile' => $stackMobile, $tableClass])>
@@ -96,6 +100,10 @@
         </table>
     </div>
     @if ($showControls)
-        <x-anggota.table-controls :table-id="$tableId" :total="count($rows)" position="bottom" />
+        @if ($paginator !== null)
+            <x-anggota.server-table-controls :table-id="$tableId" :paginator="$paginator" position="bottom" />
+        @else
+            <x-anggota.table-controls :table-id="$tableId" :total="count($rows)" position="bottom" />
+        @endif
     @endif
 </section>

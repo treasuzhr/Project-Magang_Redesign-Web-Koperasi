@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
@@ -74,15 +75,30 @@ class AnggotaController extends Controller
         return view('anggota.dashboard', $overview->dashboard($anggota));
     }
 
-    public function savingsRedirect(): RedirectResponse
+    public function savingsRedirect(Request $request): RedirectResponse
     {
-        return redirect()->route('anggota.simpanan.tab', ['jenis' => 'pokok']);
+        $filters = $this->savingsFilters($request);
+
+        return redirect()->route('anggota.simpanan.tab', array_merge($filters, ['jenis' => $filters['jenis'] ?? 'pokok']));
     }
 
-    public function savingsIndex(string $jenis): View|RedirectResponse
+    public function savingsIndex(Request $request, MemberOverview $overview, string $jenis): View
     {
         abort_unless(in_array($jenis, self::SAVINGS_TYPES, true), 404);
-
+        $filters = $this->savingsFilters($request);
+        $jenis = $filters['jenis'] ?? $jenis;
+        $tipe = $filters['tipe'] ?? null;
+        if (in_array($jenis, ['setor', 'tarik'], true)) {
+            if ($tipe !== null && $tipe !== $jenis) {
+                throw ValidationException::withMessages(['tipe' => 'Filter tipe tidak sesuai tab yang dipilih.']);
+            }
+            $tipe = $jenis;
+        }
+        $savingType = in_array($jenis, ['setor', 'tarik'], true) ? 'sukarela' : $jenis;
+        $anggota = $request->user()->anggota;
+        $anggota->setRelation('user', $request->user());
+        $tahun = isset($filters['tahun']) ? (int) $filters['tahun'] : null;
+        $perPage = (int) ($filters['per_page'] ?? 10);
         $typeLabels = [
             'pokok' => 'Pokok',
             'wajib' => 'Wajib',
@@ -138,135 +154,76 @@ class AnggotaController extends Controller
             ],
         ];
 
-        // TODO: sambungkan ke data asli.
-        $savings = [
-            'pokok' => [
-                ['number' => 1, 'year' => 2025, 'month' => 'Desember', 'amount' => 100000],
-            ],
-            'wajib' => [
-                ['number' => 1, 'year' => 2025, 'amount' => 5050000],
-            ],
-            'sukarela' => [
-                ['number' => 1, 'year' => 2025, 'amount' => 2100000],
-                ['number' => 2, 'year' => 2024, 'amount' => 1500000],
-                ['number' => 3, 'year' => 2023, 'amount' => 600000],
-                ['number' => 4, 'year' => 2022, 'amount' => 600000],
-                ['number' => 5, 'year' => 2021, 'amount' => 600000],
-                ['number' => 6, 'year' => 2020, 'amount' => 950000],
-            ],
-            'khusus' => [
-                ['number' => 1, 'nip' => '199008022018021001', 'year' => 2024, 'amount' => 196168],
-                ['number' => 2, 'nip' => '199008022018021001', 'year' => 2023, 'amount' => 170786],
-                ['number' => 3, 'nip' => '199008022018021001', 'year' => 2022, 'amount' => 180613],
-                ['number' => 4, 'nip' => '199008022018021001', 'year' => 2021, 'amount' => 251887],
-                ['number' => 5, 'nip' => '199008022018021001', 'year' => 2020, 'amount' => 333184],
-                ['number' => 6, 'nip' => '199008022018021001', 'year' => 2019, 'amount' => 331976],
-            ],
-            'setor' => [],
-            'tarik' => [
-                ['number' => 1, 'year' => 2025, 'month' => 'Juni', 'amount' => 1300000],
-                ['number' => 2, 'year' => 2024, 'month' => 'September', 'amount' => 1000000],
-                ['number' => 3, 'year' => 2024, 'month' => 'Maret', 'amount' => 2500000],
-            ],
-        ];
-
-        $rows = $savings[$jenis];
-        if (in_array($jenis, ['wajib', 'sukarela'], true)) {
-            foreach ($rows as &$row) {
-                $row['action_url'] = route('anggota.simpanan.detail', ['jenis' => $jenis, 'tahun' => $row['year']]);
+        $paginator = in_array($jenis, ['wajib', 'sukarela', 'khusus', 'setor'], true)
+            ? $overview->savingsYears($anggota, $savingType, $tipe, $tahun, $perPage)
+            : $overview->savingsHistory($anggota, $savingType, $tipe, $tahun, $perPage);
+        if (in_array($jenis, ['wajib', 'sukarela', 'setor'], true)) {
+            $paginator->through(function (array $row) use ($savingType, $tipe, $perPage): array {
+                $row['action_url'] = route('anggota.simpanan.detail', array_filter([
+                    'jenis' => $savingType, 'tahun' => $row['year'], 'tipe' => $tipe, 'per_page' => $perPage,
+                ], fn ($value): bool => $value !== null));
                 $row['action_aria_label'] = "Lihat detail tahun {$row['year']}";
-            }
-            unset($row);
-        }
 
+                return $row;
+            });
+        }
+        $tabFilters = array_intersect_key($filters, array_flip(['tahun', 'per_page']));
         $tabs = collect(self::SAVINGS_TYPES)->map(fn (string $type): array => [
             'label' => $typeLabels[$type],
-            'url' => route('anggota.simpanan.tab', ['jenis' => $type]),
+            'url' => route('anggota.simpanan.index', array_merge($tabFilters, ['jenis' => $type])),
             'active' => $type === $jenis,
         ])->all();
-
-        $member = $this->memberProfile();
-        $headingPrefix = in_array($jenis, ['setor', 'tarik'], true) ? ucfirst($jenis) : 'Simpanan';
-        $headingAccent = in_array($jenis, ['setor', 'tarik'], true) ? 'sukarela' : $typeLabels[$jenis];
+        $balances = $overview->savings($anggota);
 
         return view('anggota.simpanan.index', [
-            'member' => $member,
-            'jenis' => $jenis,
-            'jenisLabel' => $typeLabels[$jenis],
-            'headingPrefix' => $headingPrefix,
-            'headingAccent' => $headingAccent,
-            'subtitle' => $subtitles[$jenis],
-            'columns' => $columns[$jenis],
-            'rows' => $rows,
-            'tabs' => $tabs,
+            'member' => $overview->memberProfile($anggota), 'jenis' => $jenis, 'jenisLabel' => $typeLabels[$jenis],
+            'headingPrefix' => in_array($jenis, ['setor', 'tarik'], true) ? ucfirst($jenis) : 'Simpanan',
+            'headingAccent' => in_array($jenis, ['setor', 'tarik'], true) ? 'sukarela' : $typeLabels[$jenis],
+            'subtitle' => $subtitles[$jenis], 'columns' => $columns[$jenis],
+            'rows' => $paginator->items(), 'paginator' => $paginator, 'tabs' => $tabs,
+            'summary' => $balances['summary'], 'totalSimpanan' => $balances['total'],
         ]);
     }
 
-    public function savingsDetail(string $jenis, int $tahun): View|RedirectResponse
+    public function savingsDetail(Request $request, MemberOverview $overview, string $jenis, int $tahun): View
     {
-        abort_unless(in_array($jenis, ['wajib', 'sukarela'], true), 404);
-
-        // TODO: sambungkan ke data asli.
-        $savings = [
-            'wajib' => [
-                2025 => [
-                    ['number' => 1, 'year' => 2025, 'month' => 'Desember', 'amount' => 5050000],
-                ],
-            ],
-            'sukarela' => [
-                2025 => [
-                    ['number' => 1, 'year' => 2025, 'month' => 'Januari', 'amount' => 150000],
-                    ['number' => 2, 'year' => 2025, 'month' => 'Februari', 'amount' => 150000],
-                    ['number' => 3, 'year' => 2025, 'month' => 'Maret', 'amount' => 150000],
-                    ['number' => 4, 'year' => 2025, 'month' => 'April', 'amount' => 150000],
-                    ['number' => 5, 'year' => 2025, 'month' => 'Mei', 'amount' => 150000],
-                    ['number' => 6, 'year' => 2025, 'month' => 'Juni', 'amount' => 150000],
-                    ['number' => 7, 'year' => 2025, 'month' => 'Juli', 'amount' => 200000],
-                    ['number' => 8, 'year' => 2025, 'month' => 'Agustus', 'amount' => 200000],
-                    ['number' => 9, 'year' => 2025, 'month' => 'September', 'amount' => 200000],
-                    ['number' => 10, 'year' => 2025, 'month' => 'Oktober', 'amount' => 200000],
-                    ['number' => 11, 'year' => 2025, 'month' => 'November', 'amount' => 200000],
-                    ['number' => 12, 'year' => 2025, 'month' => 'Desember', 'amount' => 200000],
-                ],
-            ],
-        ];
-
-        $indexRows = $jenis === 'wajib'
-            ? [['year' => 2025]]
-            : [
-                ['year' => 2025],
-                ['year' => 2024],
-                ['year' => 2023],
-                ['year' => 2022],
-                ['year' => 2021],
-                ['year' => 2020],
-            ];
-        abort_unless(collect($indexRows)->contains('year', $tahun), 404);
-
-        $jenisLabel = ucfirst($jenis);
-        $member = $this->memberProfile();
-        $rows = $savings[$jenis][$tahun] ?? [];
-        $emptyText = $rows === [] ? 'Detail belum tersedia.' : 'Belum ada data.';
-        $tabs = collect(self::SAVINGS_TYPES)->map(fn (string $type): array => [
-            'label' => ucfirst($type),
-            'url' => route('anggota.simpanan.tab', ['jenis' => $type]),
-            'active' => $type === $jenis,
-        ])->all();
+        abort_unless(in_array($jenis, ['wajib', 'sukarela'], true) && $tahun >= 1900 && $tahun <= 9999, 404);
+        $filters = $this->savingsFilters($request);
+        $tahun = isset($filters['tahun']) ? (int) $filters['tahun'] : $tahun;
+        $anggota = $request->user()->anggota;
+        $anggota->setRelation('user', $request->user());
+        $paginator = $overview->savingsHistory($anggota, $jenis, $filters['tipe'] ?? null, $tahun, (int) ($filters['per_page'] ?? 10));
+        $balances = $overview->savings($anggota);
 
         return view('anggota.simpanan.detail', [
-            'member' => $member,
-            'jenis' => $jenis,
-            'jenisLabel' => $jenisLabel,
-            'tahun' => $tahun,
-            'rows' => $rows,
-            'emptyText' => $emptyText,
-            'tabs' => $tabs,
+            'member' => $overview->memberProfile($anggota), 'jenis' => $jenis, 'jenisLabel' => ucfirst($jenis),
+            'tahun' => $tahun, 'rows' => $paginator->items(), 'paginator' => $paginator,
+            'emptyText' => 'Belum ada data.', 'summary' => $balances['summary'], 'totalSimpanan' => $balances['total'],
+            'backUrl' => route('anggota.simpanan.tab', array_merge(array_intersect_key($filters, array_flip(['tipe', 'per_page'])), ['jenis' => $jenis, 'tahun' => $tahun])),
             'columns' => [
                 ['key' => 'number', 'label' => 'No.', 'align' => 'center'],
                 ['key' => 'year', 'label' => 'Tahun'],
                 ['key' => 'month', 'label' => 'Bulan'],
                 ['key' => 'amount', 'label' => 'Jumlah', 'align' => 'right', 'format' => 'currency'],
             ],
+        ]);
+    }
+
+    /** @return array<string, mixed> */
+    private function savingsFilters(Request $request): array
+    {
+        return $request->validate([
+            'jenis' => ['nullable', 'string', Rule::in(self::SAVINGS_TYPES)],
+            'tipe' => ['nullable', 'string', Rule::in(['setor', 'tarik'])],
+            'tahun' => ['nullable', 'integer', 'between:1900,9999'],
+            'per_page' => ['nullable', 'integer', Rule::in([10, 25, 50])],
+            'page' => ['nullable', 'integer', 'min:1'],
+        ], [
+            'jenis.in' => 'Jenis simpanan tidak valid.', 'jenis.string' => 'Jenis simpanan tidak valid.',
+            'tipe.in' => 'Tipe transaksi tidak valid.', 'tipe.string' => 'Tipe transaksi tidak valid.',
+            'tahun.integer' => 'Tahun harus berupa angka.', 'tahun.between' => 'Tahun tidak valid.',
+            'per_page.integer' => 'Jumlah data per halaman tidak valid.', 'per_page.in' => 'Pilih 10, 25, atau 50 data per halaman.',
+            'page.integer' => 'Nomor halaman tidak valid.', 'page.min' => 'Nomor halaman minimal 1.',
         ]);
     }
 

@@ -21,6 +21,7 @@
                 :caption="'Riwayat simpanan '.$jenisLabel"
                 :columns="$columns"
                 :rows="$rows"
+                :paginator="$paginator"
             />
         </div>
     </div>

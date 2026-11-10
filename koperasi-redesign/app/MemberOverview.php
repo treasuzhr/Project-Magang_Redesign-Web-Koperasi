@@ -8,7 +8,10 @@ use App\Models\ShuPeriode;
 use App\Models\SimpananTransaksi;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 
 class MemberOverview
@@ -26,6 +29,63 @@ class MemberOverview
         }
 
         return ['summary' => $summary, 'total' => array_sum($summary)];
+    }
+
+    /** @return array{name: string, nip: string, jabatan: string, avatar_url: ?string} */
+    public function memberProfile(Anggota $anggota): array
+    {
+        $anggota->loadMissing('user');
+
+        return [
+            'name' => $anggota->nama, 'nip' => $anggota->user->nip,
+            'jabatan' => $anggota->jabatan ?: 'Belum diisi',
+            'avatar_url' => $anggota->avatar_path ? Storage::disk('public')->url($anggota->avatar_path) : null,
+        ];
+    }
+
+    /** @return LengthAwarePaginator<int, array<string, mixed>> */
+    public function savingsHistory(Anggota $anggota, string $jenis, ?string $tipe = null, ?int $tahun = null, int $perPage = 10): LengthAwarePaginator
+    {
+        // Calculate balances before year/type filters, so opening balances never reset on a filtered page.
+        $ledger = $anggota->simpananTransaksis()->select('simpanan_transaksis.*')
+            ->selectRaw("SUM(CASE WHEN tipe = 'setor' THEN CAST(nominal AS SIGNED) ELSE -CAST(nominal AS SIGNED) END) OVER (PARTITION BY jenis ORDER BY tanggal, id ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) AS running_balance");
+        $paginator = DB::query()->fromSub($ledger, 'ledger')->where('jenis', $jenis)
+            ->when($tipe !== null, fn ($query) => $query->where('tipe', $tipe))
+            ->when($tahun !== null, fn ($query) => $query->whereYear('tanggal', $tahun))
+            ->orderByDesc('tanggal')->orderByDesc('id')->paginate($perPage)->withQueryString();
+        $first = $paginator->firstItem() ?? 0;
+
+        return $paginator->through(function ($row, int $index) use ($first): array {
+            $date = Carbon::parse($row->tanggal)->locale('id');
+
+            return [
+                'id' => (int) $row->id, 'number' => $first + $index, 'jenis' => $row->jenis, 'type' => $row->tipe,
+                'year' => $date->year, 'month' => $date->translatedFormat('F'), 'date' => $date->toDateString(),
+                'nominal' => (int) $row->nominal, 'amount' => $row->tipe === 'tarik' ? -(int) $row->nominal : (int) $row->nominal,
+                'running_balance' => (int) $row->running_balance,
+            ];
+        });
+    }
+
+    /** @return LengthAwarePaginator<int, array<string, mixed>> */
+    public function savingsYears(Anggota $anggota, string $jenis, ?string $tipe = null, ?int $tahun = null, int $perPage = 10): LengthAwarePaginator
+    {
+        $yearExpression = DB::connection()->getDriverName() === 'sqlite'
+            ? "CAST(strftime('%Y', tanggal) AS INTEGER)" : 'YEAR(tanggal)';
+        $paginator = $anggota->simpananTransaksis()->where('jenis', $jenis)
+            ->when($tipe !== null, fn ($query) => $query->where('tipe', $tipe))
+            ->when($tahun !== null, fn ($query) => $query->whereYear('tanggal', $tahun))
+            ->selectRaw($yearExpression.' AS year')
+            ->selectRaw("SUM(CASE WHEN tipe = 'setor' THEN CAST(nominal AS SIGNED) ELSE -CAST(nominal AS SIGNED) END) AS amount")
+            ->selectRaw('MAX(tanggal) AS latest_date')->groupByRaw($yearExpression)
+            ->orderByDesc('latest_date')->orderByDesc('year')->paginate($perPage)->withQueryString();
+        $anggota->loadMissing('user');
+        $nip = $anggota->user->nip;
+        $first = $paginator->firstItem() ?? 0;
+
+        return $paginator->through(fn ($row, int $index): array => [
+            'number' => $first + $index, 'year' => (int) $row->year, 'amount' => (int) $row->amount, 'nip' => $nip,
+        ]);
     }
 
     /** @return array{active_remaining: int, disbursed_total: int, pending_total: int} */

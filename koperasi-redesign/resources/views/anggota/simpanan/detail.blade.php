@@ -13,7 +13,7 @@
                 :accent="$tahun"
             >
                 <x-slot:actions>
-                    <x-anggota.back-button :href="route('anggota.simpanan.tab', ['jenis' => $jenis])" />
+                    <x-anggota.back-button :href="$backUrl" />
                 </x-slot:actions>
             </x-anggota.page-header>
 
@@ -23,6 +23,7 @@
                 title="Detail data"
                 :columns="$columns"
                 :rows="$rows"
+                :paginator="$paginator"
                 :empty-text="$emptyText"
             />
         </div>
