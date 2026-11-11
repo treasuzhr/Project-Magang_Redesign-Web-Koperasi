@@ -54,7 +54,7 @@
                         number="0"
                         theme="savings"
                         title="Simpanan yang bisa Anda pantau"
-                        description="Pokok, Wajib, Sukarela, dan Khusus. Lihat saldo masing-masing dan setor atau tarik simpanan sukarela kapan perlu."
+                        description="Pokok, Wajib, Sukarela, dan Khusus. Lihat saldo masing-masing kapan pun diperlukan."
                         button="Masuk anggota"
                         href="{{ url('/login') }}"
                     >

@@ -2,7 +2,7 @@
 
 @if ($position === 'top')
     <form class="member-table-controls member-table-controls--top" method="GET" action="{{ url()->current() }}">
-        @foreach (request()->only(['jenis', 'tipe', 'tahun']) as $key => $value)
+        @foreach (request()->only(['jenis', 'tipe', 'tahun', 'status']) as $key => $value)
             @if ($value !== null && $value !== '')
                 <input type="hidden" name="{{ $key }}" value="{{ $value }}">
             @endif

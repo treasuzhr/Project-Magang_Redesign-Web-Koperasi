@@ -24,6 +24,7 @@
                 title="Riwayat Pinjaman"
                 :columns="$columns"
                 :rows="$rows"
+                :paginator="$paginator"
                 empty-text="Belum ada riwayat pinjaman."
                 stack-mobile
             />

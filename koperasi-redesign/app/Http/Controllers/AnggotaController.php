@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\MemberOverview;
+use App\Models\Pinjaman;
+use App\Models\PinjamanJenis;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\RateLimiter;
@@ -307,14 +309,20 @@ class AnggotaController extends Controller
         ]);
     }
 
-    public function loanIndex(): View|RedirectResponse
+    public function loanIndex(Request $request, MemberOverview $overview): View
     {
-        // TODO: sambungkan ke data pinjaman asli.
-        $activeLoans = [];
+        $anggota = $request->user()->anggota;
+        $anggota->setRelation('user', $request->user());
+        $filters = $request->validate([
+            'per_page' => ['nullable', 'integer', Rule::in([10, 25, 50])],
+            'page' => ['nullable', 'integer', 'min:1'],
+        ]);
+        $paginator = $overview->loanList($anggota, 'berjalan', null, (int) ($filters['per_page'] ?? 10));
 
         return view('anggota.pinjaman.index', [
-            'member' => $this->memberProfile(),
-            'activeLoans' => $activeLoans,
+            'member' => $overview->memberProfile($anggota),
+            'activeLoans' => $paginator->items(), 'paginator' => $paginator,
+            'columns' => $this->loanColumns(),
         ]);
     }
 
@@ -384,33 +392,58 @@ class AnggotaController extends Controller
         return redirect()->route('anggota.pinjaman.ajukan')->with('status', 'Pengajuan pinjaman Anda sudah dikirim.');
     }
 
-    public function loanHistory(): View|RedirectResponse
+    public function loanHistory(Request $request, MemberOverview $overview): View
     {
-        // TODO: sambungkan ke data riwayat pinjaman asli.
-        $rows = [];
-        // TODO: arahkan detail ke halaman detail pinjaman saat kontennya tersedia.
-        foreach ($rows as &$row) {
-            $row['action_url'] = route('anggota.soon');
-            $row['action_aria_label'] = "Lihat detail pengajuan {$row['application_number']}";
-        }
-        unset($row);
+        $filters = $request->validate([
+            'status' => ['nullable', 'string', Rule::in(Pinjaman::STATUSES)],
+            'jenis' => ['nullable', 'string', Rule::in(PinjamanJenis::KODE)],
+            'per_page' => ['nullable', 'integer', Rule::in([10, 25, 50])],
+            'page' => ['nullable', 'integer', 'min:1'],
+        ], ['status.in' => 'Status pinjaman tidak valid.', 'jenis.in' => 'Jenis pinjaman tidak valid.', 'per_page.in' => 'Pilih 10, 25, atau 50 data per halaman.']);
+        $anggota = $request->user()->anggota;
+        $anggota->setRelation('user', $request->user());
+        $paginator = $overview->loanList($anggota, $filters['status'] ?? null, $filters['jenis'] ?? null, (int) ($filters['per_page'] ?? 10));
 
         return view('anggota.pinjaman.riwayat', [
-            'member' => $this->memberProfile(),
-            'rows' => $rows,
-            'columns' => [
-                ['key' => 'action', 'label' => 'Detail', 'align' => 'center', 'action_label' => 'Detail'],
-                ['key' => 'number', 'label' => 'No.', 'align' => 'center'],
-                ['key' => 'application_number', 'label' => 'No. pengajuan'],
-                ['key' => 'loan_type', 'label' => 'Jenis pinjaman'],
-                ['key' => 'total', 'label' => 'Total', 'align' => 'right', 'format' => 'currency'],
-                ['key' => 'term', 'label' => 'Tenor'],
-                ['key' => 'remaining', 'label' => 'Sisa', 'align' => 'right', 'format' => 'currency'],
-                // TODO: petakan status asli ke warna badge.
-                ['key' => 'status', 'label' => 'Status pinjaman', 'format' => 'badge'],
-                ['key' => 'date', 'label' => 'Tanggal', 'format' => 'date'],
-            ],
+            'member' => $overview->memberProfile($anggota), 'rows' => $paginator->items(),
+            'paginator' => $paginator, 'columns' => $this->loanColumns(),
         ]);
+    }
+
+    /** @return array<int, array<string, string>> */
+    private function loanColumns(): array
+    {
+        return [
+            ['key' => 'action', 'label' => 'Detail', 'align' => 'center', 'action_label' => 'Detail'],
+            ['key' => 'number', 'label' => 'No.', 'align' => 'center'],
+            ['key' => 'application_number', 'label' => 'No. pengajuan'],
+            ['key' => 'loan_type', 'label' => 'Jenis pinjaman'],
+            ['key' => 'total', 'label' => 'Total', 'align' => 'right', 'format' => 'currency'],
+            ['key' => 'term', 'label' => 'Tenor'],
+            ['key' => 'remaining', 'label' => 'Sisa', 'align' => 'right', 'format' => 'currency'],
+            ['key' => 'status', 'label' => 'Status pinjaman', 'format' => 'badge'],
+            ['key' => 'date', 'label' => 'Tanggal', 'format' => 'date'],
+        ];
+    }
+
+    public function loanDetail(Request $request, MemberOverview $overview, int $id): View
+    {
+        $anggota = $request->user()->anggota;
+        $anggota->setRelation('user', $request->user());
+
+        return view('anggota.pinjaman.detail', [
+            'member' => $overview->memberProfile($anggota), 'loan' => $overview->loanDetail($anggota, $id),
+        ]);
+    }
+
+    public function loanAkad(Request $request, int $id): StreamedResponse
+    {
+        $loan = $request->user()->anggota->pinjamans()->findOrFail($id);
+        $path = $loan->dokumen_akad_path;
+        abort_unless($path !== null && ! str_contains($path, '..') && ! str_contains($path, ':') && ! str_starts_with($path, '/') && ! str_starts_with($path, '\\'), 404);
+        abort_unless(Storage::disk('local')->exists($path), 404);
+
+        return Storage::disk('local')->download($path);
     }
 
     public function orderIndex(): View|RedirectResponse

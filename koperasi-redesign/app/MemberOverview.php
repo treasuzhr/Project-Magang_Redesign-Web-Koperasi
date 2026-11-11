@@ -88,6 +88,67 @@ class MemberOverview
         ]);
     }
 
+    /** @return Builder<Pinjaman> */
+    private function loanQuery(Anggota $anggota): Builder
+    {
+        return Pinjaman::query()->where('anggota_id', $anggota->id)->with('jenis')
+            ->withSum(['angsurans as paid_principal' => fn (Builder $query) => $query->where('status', 'lunas')], 'pokok')
+            ->withSum(['angsurans as paid_total' => fn (Builder $query) => $query->where('status', 'lunas')], 'total')
+            ->withCount(['angsurans as unpaid_count' => fn (Builder $query) => $query->where('status', '!=', 'lunas')])
+            ->withCount(['angsurans as overdue_count' => fn (Builder $query) => $query->where('status', '!=', 'lunas')->where('jatuh_tempo', '<', today()->toDateString())]);
+    }
+
+    /** @return LengthAwarePaginator<int, array<string, mixed>> */
+    public function loanList(Anggota $anggota, ?string $status = null, ?string $jenis = null, int $perPage = 10): LengthAwarePaginator
+    {
+        $paginator = $this->loanQuery($anggota)
+            ->when($status !== null, fn (Builder $query) => $query->where('status', $status))
+            ->when($jenis !== null, fn (Builder $query) => $query->whereHas('jenis', fn (Builder $kind) => $kind->where('kode', $jenis)))
+            ->orderByDesc('tanggal_pengajuan')->orderByDesc('id')->paginate($perPage)->withQueryString();
+        $first = $paginator->firstItem() ?? 0;
+
+        return $paginator->through(fn (Pinjaman $loan, int $index): array => array_merge($this->loanRow($loan), ['number' => $first + $index]));
+    }
+
+    /** @return array<string, mixed> */
+    private function loanRow(Pinjaman $loan): array
+    {
+        return [
+            'id' => $loan->id, 'application_number' => $loan->kode,
+            'loan_type' => match ($loan->jenis->kode) {
+                'toko' => 'Toko', 'usipa' => 'Unit Simpan Pinjam', 'usipa_khusus' => 'USP Khusus',
+            },
+            'total' => $loan->jumlah, 'term' => $loan->tenor_bulan,
+            'interest_rate' => $loan->bunga_persen_per_bulan,
+            'payment_method' => $loan->metode_bayar === 'potong_gaji' ? 'Potong Gaji' : 'Tunjangan Kinerja',
+            'remaining' => max(0, $loan->jumlah - (int) $loan->paid_principal),
+            'paid_total' => (int) $loan->paid_total, 'remaining_installments' => (int) $loan->unpaid_count,
+            'overdue_count' => (int) $loan->overdue_count, 'status' => ucfirst($loan->status),
+            'date' => $loan->tanggal_pengajuan->toDateString(),
+            'approved_date' => $loan->tanggal_disetujui?->locale('id')->translatedFormat('j F Y') ?? '-',
+            'needs_akad' => $loan->jenis->butuh_dokumen_akad,
+            'action_url' => route('anggota.pinjaman.detail', ['id' => $loan->id]),
+            'action_aria_label' => 'Lihat detail pengajuan '.$loan->kode,
+        ];
+    }
+
+    /** @return array<string, mixed> */
+    public function loanDetail(Anggota $anggota, int $id): array
+    {
+        $loan = $this->loanQuery($anggota)->with(['angsurans' => fn (HasMany $query) => $query->orderBy('angsuran_ke')->orderBy('id')])->findOrFail($id);
+        $result = $this->loanRow($loan);
+        $result['schedule'] = $loan->angsurans->map(fn ($installment): array => [
+            'number' => $installment->angsuran_ke,
+            'due_date' => $installment->jatuh_tempo->locale('id')->translatedFormat('j F Y'),
+            'principal' => $installment->pokok, 'interest' => $installment->bunga, 'total' => $installment->total,
+            'status' => $installment->status === 'lunas' ? 'Lunas' : ($installment->jatuh_tempo->lt(today()) ? 'Tunggak' : 'Belum'),
+            'paid_date' => $installment->tanggal_bayar?->locale('id')->translatedFormat('j F Y') ?? '-',
+        ])->all();
+        $result['akad_available'] = $loan->dokumen_akad_path !== null && Storage::disk('local')->exists($loan->dokumen_akad_path);
+
+        return $result;
+    }
+
     /** @return array{active_remaining: int, disbursed_total: int, pending_total: int} */
     public function loanSummary(Anggota $anggota): array
     {

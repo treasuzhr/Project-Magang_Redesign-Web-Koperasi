@@ -38,7 +38,7 @@
                 @if ($activeLoans === [])
                     <x-anggota.info-box>Anda belum memiliki pinjaman aktif.</x-anggota.info-box>
                 @else
-                    {{-- TODO: tampilkan daftar pinjaman aktif dari struktur data asli tanpa mengarang kolom. --}}
+                    <x-anggota.data-table table-id="active-loans-table" caption="Pinjaman aktif anggota" :columns="$columns" :rows="$activeLoans" :paginator="$paginator" stack-mobile />
                 @endif
             </section>
         </div>

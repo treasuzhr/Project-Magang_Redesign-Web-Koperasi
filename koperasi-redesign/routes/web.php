@@ -115,6 +115,8 @@ Route::middleware(['auth', 'role:anggota'])->group(function () {
     Route::get('/anggota/pinjaman/ajukan', [AnggotaController::class, 'loanApplication'])->name('anggota.pinjaman.ajukan');
     Route::post('/anggota/pinjaman/ajukan', [AnggotaController::class, 'submitLoanApplication'])->name('anggota.pinjaman.submit');
     Route::get('/anggota/pinjaman/riwayat', [AnggotaController::class, 'loanHistory'])->name('anggota.pinjaman.riwayat');
+    Route::get('/anggota/pinjaman/{id}/akad', [AnggotaController::class, 'loanAkad'])->whereNumber('id')->name('anggota.pinjaman.akad');
+    Route::get('/anggota/pinjaman/{id}', [AnggotaController::class, 'loanDetail'])->whereNumber('id')->name('anggota.pinjaman.detail');
 
     Route::get('/anggota/pesanan', [AnggotaController::class, 'orderIndex'])->name('anggota.pesanan.index');
     Route::get('/anggota/pesanan/{id}', [AnggotaController::class, 'orderDetail'])
