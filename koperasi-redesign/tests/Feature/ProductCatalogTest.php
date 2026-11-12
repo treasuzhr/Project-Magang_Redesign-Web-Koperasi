@@ -2,11 +2,26 @@
 
 namespace Tests\Feature;
 
-use App\ProductSource;
+use App\Models\Kategori;
+use App\Models\Produk;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 class ProductCatalogTest extends TestCase
 {
+    use RefreshDatabase;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+        foreach (config('product_categories') as $category) {
+            Kategori::create(['nama' => $category['name'], 'slug' => $category['slug']]);
+        }
+        foreach (config('product_catalog.samples') as $product) {
+            Produk::create(['nama' => $product['name'], 'harga' => $product['price'], 'kategori_id' => Kategori::where('slug', $product['category'])->value('id'), 'aktif' => true]);
+        }
+    }
+
     public function test_public_footers_link_directly_to_the_product_catalog(): void
     {
         foreach (['home', 'about', 'products.index', 'news.index', 'contact', 'cart.index'] as $route) {
@@ -17,23 +32,16 @@ class ProductCatalogTest extends TestCase
         }
     }
 
-    public function test_category_product_details_only_render_when_provided(): void
+    public function test_categories_use_database_names_counts_and_numeric_product_ids(): void
     {
-        $this->get('/')->assertOk()->assertDontSee('class="category-showcase__sample"', false);
-
-        $categories = config('product_categories');
-        $categories[0]['products_count'] = 12;
-        $categories[0]['products'] = [
-            ['name' => 'Produk pengujian', 'price' => 1500, 'url' => '/produk?q=pengujian'],
-            ['name' => 'Produk tanpa tautan', 'price' => 2000],
-        ];
-        config(['product_categories' => $categories]);
-
-        $this->get('/')->assertOk()
-            ->assertSee('12 produk')
-            ->assertSee('Produk pengujian')
-            ->assertSee('Rp 1.500')
-            ->assertDontSee('Produk tanpa tautan');
+        $category = Kategori::first();
+        $category->update(['nama' => 'Kategori dari database']);
+        $this->get('/')->assertOk()->assertSee('Kategori dari database')->assertSee('6 produk');
+        $product = Produk::first();
+        $this->get('/produk')->assertOk()->assertSee('data-product-id="'.$product->id.'"', false);
+        Produk::create(['nama' => 'Rahasia nonaktif', 'harga' => 1, 'aktif' => false]);
+        $this->get('/produk')->assertOk()->assertDontSee('Rahasia nonaktif');
+        $this->get('/produk?category=tidak-dikenal')->assertOk()->assertSee('Produk tidak ditemukan');
     }
 
     public function test_homepage_displays_all_nine_categories_in_a_showcase(): void
@@ -150,16 +158,8 @@ class ProductCatalogTest extends TestCase
             ->assertSee('Produk tidak ditemukan')
             ->assertSee('Atur ulang filter')
             ->assertDontSee('Katalog sedang disiapkan');
-        config(['product_catalog.samples' => []]);
+        Produk::query()->delete();
         $this->get('/produk')->assertOk()->assertSee('Katalog sedang disiapkan')->assertDontSee('Produk tidak ditemukan');
-    }
-
-    public function test_source_failure_does_not_expose_technical_details(): void
-    {
-        $source = \Mockery::mock(ProductSource::class);
-        $source->shouldReceive('all')->once()->andThrow(new \RuntimeException('private source diagnostic'));
-        $this->app->instance(ProductSource::class, $source);
-        $this->get('/produk')->assertOk()->assertSee('Katalog sedang disiapkan')->assertDontSee('private source diagnostic');
     }
 
     public function test_invalid_price_range_keeps_inputs_and_shows_a_specific_error(): void

@@ -8,7 +8,7 @@
 @endpush
 
 @section('content')
-    <main class="product-catalog" data-product-catalog>
+    <main class="product-catalog" data-product-catalog data-cart-products-url="{{ route('cart.products') }}">
         <header class="pc-header">
             <div>
                 <p class="section-eyebrow">Jelajahi</p>

@@ -1,7 +1,8 @@
 import '../../css/cart-badge.css';
-import { readCart, subscribeCart } from './cart-store.js';
+import { readCart, saveCart, subscribeCart } from './cart-store.js';
 
 export function initCartBadge() {
+    if (document.querySelector('[data-checkout-success]')) saveCart(new Map());
     const target = document.querySelector('.navbar .cart-link');
     if (!target) return;
     const update = () => {

@@ -262,7 +262,7 @@ class MemberOverview
             'id' => $order->id, 'number' => $first + $index,
             'date' => $order->tanggal->locale('id')->translatedFormat('d F Y'),
             'item_count' => (int) $order->items_sum_qty, 'total' => (int) $order->items_sum_subtotal,
-            'status' => ucfirst($order->status),
+            'status' => $order->status === 'siap' ? 'Siap diambil' : ucfirst($order->status),
             'action_url' => route('anggota.pesanan.detail', ['id' => $order->id]),
             'action_aria_label' => 'Lihat detail order tanggal '.$order->tanggal->locale('id')->translatedFormat('d F Y'),
         ]);
@@ -278,7 +278,7 @@ class MemberOverview
 
         return [
             'id' => $order->id, 'date' => $order->tanggal->locale('id')->translatedFormat('d F Y'),
-            'status' => ucfirst($order->status), 'items' => $items, 'total' => (int) $order->items->sum('subtotal'),
+            'status' => $order->status === 'siap' ? 'Siap diambil' : ucfirst($order->status), 'items' => $items, 'total' => (int) $order->items->sum('subtotal'),
         ];
     }
 

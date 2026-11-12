@@ -4,40 +4,22 @@ import { CART_KEY, decodeCart, readCart, saveCart, subscribeCart } from '../../r
 globalThis.window = new EventTarget();
 const storage = new Map();
 globalThis.localStorage = { getItem: key => storage.get(key) ?? null, setItem: (key, value) => storage.set(key, value) };
-const product = { id: 'amplop-coklat-a4', name: 'Amplop Coklat A4', price: 750, quantity: 2 };
-
-test('invalid storage and invalid quantities are ignored', () => {
+test('legacy slugs, invalid ids and quantities are ignored', () => {
     assert.equal(decodeCart('{broken').size, 0);
-    assert.equal(decodeCart('{}').size, 0);
-    for (const quantity of [-1, 0, 1.5, 1000, '2']) assert.equal(decodeCart(JSON.stringify([{ ...product, quantity }])).size, 0);
-    assert.equal(decodeCart(JSON.stringify([{ ...product, price: -1 }])).size, 0);
+    assert.equal(decodeCart(JSON.stringify([{ id: 'slug-lama', name: 'Lama', price: 5, quantity: 2 }])).size, 0);
+    for (const qty of [-1, 0, 1.5, 100, '2']) assert.equal(decodeCart(JSON.stringify([{ id: 1, qty }])).size, 0);
 });
-
-test('cart survives page reads and callers cannot mutate saved state', () => {
-    saveCart(new Map([[product.id, { name: product.name, price: product.price, quantity: 2 }]]));
-    assert.equal(readCart().get(product.id).quantity, 2);
-    const copy = readCart();
-    copy.get(product.id).quantity = 99;
-    assert.equal(readCart().get(product.id).quantity, 2);
+test('only numeric id and qty are persisted and legacy metadata is stripped', () => {
+    saveCart(new Map([[1, { qty: 2, name: 'Hapus', price: 10 }]]));
+    assert.deepEqual(JSON.parse(storage.get(CART_KEY)), [{ id: 1, qty: 2 }]);
+    const copy = readCart(); copy.get(1).qty = 9; assert.equal(readCart().get(1).qty, 2);
+    storage.set(CART_KEY, JSON.stringify([{ id: 'slug', quantity: 5 }, { id: 2, qty: 3, price: 100 }]));
+    assert.equal(readCart().size, 1); assert.deepEqual(JSON.parse(storage.get(CART_KEY)), [{ id: 2, qty: 3 }]);
 });
-
-test('subscribers receive cart updates and cross-tab changes, and can unsubscribe', () => {
-    let changes = 0;
-    const stop = subscribeCart(() => changes++);
-    saveCart(new Map());
-    const event = new Event('storage');
-    event.key = CART_KEY;
-    window.dispatchEvent(event);
-    assert.equal(changes, 2);
-    stop();
-    window.dispatchEvent(event);
-    assert.equal(changes, 2);
-});
-
-test('storage failure falls back to in-memory cart without throwing', () => {
+test('subscriptions can be removed and storage failure preserves in-memory state', () => {
+    let calls = 0; const stop = subscribeCart(() => calls++); saveCart(new Map()); stop(); saveCart(new Map()); assert.equal(calls, 1);
     const original = globalThis.localStorage;
-    globalThis.localStorage = { getItem() { throw Error('blocked'); }, setItem() { throw Error('full'); } };
-    assert.equal(saveCart(new Map([[product.id, product]])), false);
-    assert.equal(readCart().get(product.id).quantity, 2);
+    globalThis.localStorage = { getItem() { throw Error('blocked'); }, setItem() { throw Error('blocked'); } };
+    assert.equal(saveCart(new Map([[1, { qty: 2 }]])), false); assert.equal(readCart().get(1).qty, 2);
     globalThis.localStorage = original;
 });

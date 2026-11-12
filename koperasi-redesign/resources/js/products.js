@@ -1,4 +1,4 @@
-import { readCart, saveCart, subscribeCart } from './modules/cart-store.js';
+import { readCart, saveCart, subscribeCart, MAX_QUANTITY } from './modules/cart-store.js';
 
 function initProductCatalog() {
     const page = document.querySelector('[data-product-catalog]');
@@ -90,12 +90,14 @@ function initProductCatalog() {
             setTimeout(() => cards.forEach(card => card.classList.add('is-visible')), 5000);
         }
     };
-    const renderCart = () => {
+    let cartRevision = 0;
+    const renderCart = async () => {
+        const revision = ++cartRevision;
         let count = 0;
         let total = 0;
-        cart.forEach(product => { count += product.quantity; total += product.price * product.quantity; });
+        cart.forEach(product => { count += product.qty; });
         page.querySelectorAll('[data-product-card]').forEach(card => {
-            const quantity = cart.get(card.dataset.productId)?.quantity || 0;
+            const quantity = cart.get(Number(card.dataset.productId))?.qty || 0;
             const add = card.querySelector('[data-add-product]');
             add.disabled = false;
             add.hidden = quantity > 0;
@@ -119,6 +121,18 @@ function initProductCatalog() {
         }
         mobileCart.hidden = count === 0;
         page.querySelector('[data-mobile-cart-count]').textContent = `${count} barang`;
+        page.querySelector('[data-mobile-cart-total]').textContent = '...';
+        if (cart.size) {
+            try {
+                const url = new URL(page.dataset.cartProductsUrl, location.origin);
+                cart.forEach((item, id) => url.searchParams.append('ids[]', id));
+                const response = await fetch(url, { headers: { Accept: 'application/json' } });
+                if (!response.ok) return;
+                const data = await response.json();
+                if (revision !== cartRevision) return;
+                data.products.forEach(product => { total += product.price * (cart.get(product.id)?.qty || 0); });
+            } catch { return; }
+        }
         page.querySelector('[data-mobile-cart-total]').textContent = money(total);
     };
     const pulseBadge = () => {
@@ -277,18 +291,17 @@ function initProductCatalog() {
         const control = event.target.closest('[data-add-product], [data-change-quantity]');
         if (!control) return;
         const card = control.closest('[data-product-card]');
-        const id = card.dataset.productId;
+        const id = Number(card.dataset.productId);
         const origin = control.getBoundingClientRect();
-        const product = cart.get(id) || { name: card.dataset.productName, price: Number(card.dataset.productPrice), quantity: 0 };
+        const product = cart.get(id) || { qty: 0 };
         const change = control.hasAttribute('data-add-product') ? 1 : Number(control.dataset.changeQuantity);
-        product.quantity = Math.max(0, Math.min(999, product.quantity + change));
-        if (product.quantity <= 0) cart.delete(id);
+        product.qty = Math.max(0, Math.min(MAX_QUANTITY, product.qty + change));
+        if (product.qty <= 0) cart.delete(id);
         else cart.set(id, product);
         saveCart(cart);
-        renderCart();
         if (change > 0) addedFeedback(origin);
         if (control.hidden || control.closest('[hidden]')) {
-            const next = card.querySelector(product.quantity > 0 ? '[data-change-quantity="1"]' : '[data-add-product]');
+            const next = card.querySelector(product.qty > 0 ? '[data-change-quantity="1"]' : '[data-add-product]');
             next?.focus({ preventScroll: true });
         }
     });

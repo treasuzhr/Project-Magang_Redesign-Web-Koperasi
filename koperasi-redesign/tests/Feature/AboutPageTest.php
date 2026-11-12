@@ -2,10 +2,13 @@
 
 namespace Tests\Feature;
 
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 class AboutPageTest extends TestCase
 {
+    use RefreshDatabase;
+
     public function test_about_page_renders_all_people_in_their_card_groups(): void
     {
         $response = $this->get('/tentang-kami');

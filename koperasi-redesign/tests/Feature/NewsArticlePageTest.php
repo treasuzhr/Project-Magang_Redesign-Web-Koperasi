@@ -2,10 +2,13 @@
 
 namespace Tests\Feature;
 
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 class NewsArticlePageTest extends TestCase
 {
+    use RefreshDatabase;
+
     public function test_layanan_article_displays_the_supplied_content_and_metadata(): void
     {
         $response = $this->get(route('news.show', 'layanan-primkop-pullahta-hankam'));

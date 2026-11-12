@@ -1,12 +1,12 @@
 <?php
 
+use App\DatabaseProductSource;
 use App\Http\Controllers\AnggotaController;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\CartController;
 use App\Http\Controllers\LoginCaptchaController;
 use App\Http\Controllers\PasswordController;
 use App\Http\Controllers\ProductController;
-use App\ProductDisplayName;
-use App\ProductSource;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Route;
@@ -33,8 +33,8 @@ $newsArticles = static function (): Collection {
     })->unique('slug')->sortByDesc('datetime')->values();
 };
 
-Route::get('/', function () {
-    $categories = config('product_categories');
+Route::get('/', function (DatabaseProductSource $source) {
+    $categories = $source->categories();
     $news = config('news.articles');
 
     return view('welcome', compact('categories', 'news'));
@@ -135,19 +135,8 @@ Route::middleware(['auth', 'role:anggota'])->group(function () {
 
 });
 
-Route::get('/keranjang', function (ProductSource $source) {
-    $categoryLabels = array_column(config('product_categories', []), 'name', 'slug');
-    try {
-        $products = $source->all()->map(static fn (array $product): array => array_merge($product, [
-            'display_name' => ProductDisplayName::format($product['name']),
-            'category_label' => $categoryLabels[$product['category'] ?? ''] ?? null,
-        ]));
-        $sourceAvailable = true;
-    } catch (Throwable $exception) {
-        report($exception);
-        $products = collect();
-        $sourceAvailable = false;
-    }
-
-    return view('cart.index', compact('products', 'sourceAvailable'));
-})->name('cart.index');
+Route::get('/keranjang', [CartController::class, 'index'])->name('cart.index');
+Route::get('/keranjang/produk', [CartController::class, 'products'])->middleware('throttle:120,1')->name('cart.products');
+Route::get('/checkout', [CartController::class, 'showCheckout'])->name('checkout.show');
+Route::post('/checkout', [CartController::class, 'store'])
+    ->middleware(['auth', 'role:anggota', 'throttle:checkout'])->block(10, 10)->name('checkout.store');

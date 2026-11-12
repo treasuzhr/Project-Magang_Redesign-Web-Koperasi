@@ -17,6 +17,13 @@
                 :subtitle="'Order tanggal '.$order['date'].'.'"
             />
 
+            @if (session('status'))
+                <x-anggota.info-box>{{ session('status') }}</x-anggota.info-box>
+            @endif
+            @if (session('checkout.clear_cart'))
+                <span hidden data-checkout-success></span>
+            @endif
+
             <x-anggota.info-box>Status: {{ $order['status'] }}</x-anggota.info-box>
 
             @if ($order['items'] !== [])

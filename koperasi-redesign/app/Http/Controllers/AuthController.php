@@ -60,7 +60,14 @@ class AuthController extends Controller
         }
         RateLimiter::clear($key);
         $request->session()->regenerate();
+        $intended = $request->session()->get('url.intended');
+        if ($request->user()->role === 'anggota' && (is_string($intended) && in_array(parse_url($intended, PHP_URL_PATH), ['/checkout', '/keranjang'], true))) {
+            $request->session()->put('checkout.return_to_cart', true);
+        }
         $request->session()->forget(['member', 'captcha_question', 'url.intended']);
+        if (! $request->user()->must_change_password && $request->user()->role === 'anggota' && $request->session()->pull('checkout.return_to_cart', false)) {
+            return redirect()->route('cart.index');
+        }
 
         return redirect()->route($request->user()->must_change_password ? 'password.edit' : self::dashboardRoute($request->user()));
     }

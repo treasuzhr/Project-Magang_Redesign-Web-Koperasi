@@ -48,6 +48,10 @@ class PasswordController extends Controller
         $request->session()->regenerate();
         RateLimiter::clear($key);
 
+        if ($request->user()->role === 'anggota' && $request->session()->pull('checkout.return_to_cart', false)) {
+            return redirect()->route('cart.index')->with('status', 'Password berhasil diubah.');
+        }
+
         return redirect()->route(AuthController::dashboardRoute($request->user()))->with('status', 'Password berhasil diubah.');
     }
 }

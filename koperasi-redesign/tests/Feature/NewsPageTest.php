@@ -2,11 +2,14 @@
 
 namespace Tests\Feature;
 
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Str;
 use Tests\TestCase;
 
 class NewsPageTest extends TestCase
 {
+    use RefreshDatabase;
+
     public function test_news_page_renders_the_featured_story_and_expected_articles(): void
     {
         $response = $this->get('/berita');
