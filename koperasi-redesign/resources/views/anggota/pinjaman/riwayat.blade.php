@@ -18,6 +18,10 @@
                 </x-slot:actions>
             </x-anggota.page-header>
 
+            @if (session('status'))
+                <x-anggota.info-box>{{ session('status') }}</x-anggota.info-box>
+            @endif
+
             <x-anggota.data-table
                 table-id="loan-history-table"
                 caption="Riwayat pinjaman anggota"

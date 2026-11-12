@@ -4,48 +4,60 @@ if (form) {
     const totalInput = form.querySelector('[data-loan-total]');
     const totalHelp = form.querySelector('[data-loan-total-help]');
     const termInput = form.querySelector('[data-loan-term]');
-    const simulationValues = [...form.querySelectorAll('.loan-simulation-row strong')];
-    const submitButton = form.querySelector('[data-loan-submit]');
-    const submitLabel = form.querySelector('[data-loan-submit-label]');
-    const firstInvalidField = form.querySelector('[aria-invalid="true"]');
+    const typeInput = form.querySelector('[name="loan_type"]');
+    const values = [...form.querySelectorAll('.loan-simulation-row strong')];
+    const kinds = JSON.parse(form.dataset.loanKinds || '{}');
+    const currency = new Intl.NumberFormat('id-ID', { maximumFractionDigits: 0 });
+    let timer;
+    let pending;
+    let revision = 0;
 
-    const formatRupiah = (digits) => digits.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
     const updateSimulation = () => {
-        const totalDigits = totalInput.value.replace(/\D/g, '');
-        const termDigits = termInput.value.trim();
-        let principal = '-';
+        clearTimeout(timer);
+        pending?.abort();
+        const currentRevision = ++revision;
+        const kind = kinds[typeInput.value];
+        const amount = totalInput.value.replace(/^Rp\s*/i, '').replace(/[., ]/g, '');
+        const term = termInput.value.trim();
+        values.forEach((value) => { value.textContent = '-'; });
+        if (totalHelp) totalHelp.textContent = /^[0-9]+$/.test(amount) ? `Rp ${currency.format(Number(amount))}` : '';
+        termInput.setAttribute('max', kind?.tenor_maks ?? '');
+        totalInput.setAttribute('max', kind?.plafon_maks ?? '');
+        if (!kind || !/^[0-9]+$/.test(amount) || !/^[0-9]+$/.test(term)
+            || Number(amount) < 1 || Number(amount) > kind.plafon_maks
+            || Number(term) < 1 || Number(term) > kind.tenor_maks) return;
 
-        if (totalDigits && /^[0-9]+$/.test(termDigits)) {
-            const total = BigInt(totalDigits);
-            const term = BigInt(termDigits);
-
-            if (total > 0n && term > 0n) {
-                let rounded = total / term;
-                const remainder = total % term;
-                if (remainder * 2n >= term) rounded += 1n;
-                principal = `Rp ${formatRupiah(rounded.toString())}`;
+        timer = setTimeout(async () => {
+            pending = new AbortController();
+            const url = new URL(form.dataset.simulationUrl, window.location.origin);
+            url.search = new URLSearchParams({ loan_type: typeInput.value, loan_total: totalInput.value, loan_term: term });
+            try {
+                const response = await fetch(url, {
+                    headers: { Accept: 'application/json' }, signal: pending.signal, credentials: 'same-origin',
+                });
+                if (!response.ok) return;
+                const estimate = await response.json();
+                if (revision !== currentRevision) return;
+                ['principal', 'interest', 'total'].forEach((key, index) => {
+                    values[index].textContent = `Rp ${currency.format(estimate[key])}`;
+                });
+            } catch (error) {
+                // Keep the empty estimate on network failure; submission is validated by the server.
             }
-        }
-
-        simulationValues[0].textContent = principal;
-        simulationValues[1].textContent = '-';
-        simulationValues[2].textContent = '-';
-
-        if (totalHelp) {
-            totalHelp.textContent = totalDigits ? `Rp ${formatRupiah(totalDigits)}` : '';
-        }
+        }, 300);
     };
 
     totalInput.addEventListener('input', updateSimulation);
     termInput.addEventListener('input', updateSimulation);
+    typeInput.addEventListener('change', updateSimulation);
     updateSimulation();
-
-    if (firstInvalidField) {
-        firstInvalidField.focus({ preventScroll: true });
-    }
-
+    form.querySelector('[aria-invalid="true"]')?.focus({ preventScroll: true });
     form.addEventListener('submit', () => {
-        submitButton.disabled = true;
-        submitLabel.textContent = 'Mengirim...';
+        form.querySelector('[data-loan-submit]').disabled = true;
+        form.querySelector('[data-loan-submit-label]').textContent = 'Mengirim...';
+    });
+    window.addEventListener('pageshow', () => {
+        form.querySelector('[data-loan-submit]').disabled = false;
+        form.querySelector('[data-loan-submit-label]').textContent = 'Ajukan pinjaman';
     });
 }

@@ -2,9 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\StoreLoanApplicationRequest;
+use App\LoanApplication;
+use App\LoanSimulator;
 use App\MemberOverview;
 use App\Models\Pinjaman;
 use App\Models\PinjamanJenis;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\RateLimiter;
@@ -326,70 +330,46 @@ class AnggotaController extends Controller
         ]);
     }
 
-    public function loanApplication(): View|RedirectResponse
+    public function loanApplication(Request $request, MemberOverview $overview, LoanSimulator $simulator): View
     {
-        $options = $this->loanFormOptions();
-        // TODO: isi suku bunga dan rumus dari ketentuan koperasi.
-        $monthlyInterestRates = [
-            'toko' => null,
-            'usp' => null,
-            'usp-khusus' => null,
-        ];
-        $totalInputDigits = preg_replace('/\D+/', '', (string) old('loan_total', '')) ?? '';
-        $principalEstimate = $this->estimatePrincipal(
-            $totalInputDigits,
-            old('loan_term')
-        );
+        $kinds = PinjamanJenis::whereIn('kode', PinjamanJenis::KODE)->orderBy('id')->get();
+        $member = $request->user()->anggota;
+        $member->setRelation('user', $request->user());
+        $kind = $kinds->firstWhere('kode', old('loan_type'));
+        $amount = LoanSimulator::normalizeAmount(old('loan_total'));
+        $term = filter_var(old('loan_term'), FILTER_VALIDATE_INT);
+        $estimate = $kind !== null && $amount !== null && filter_var($amount, FILTER_VALIDATE_INT) !== false && (int) $amount > 0 && (int) $amount <= $kind->plafon_maks && $term !== false && $term > 0 && $term <= $kind->tenor_maks
+            ? $simulator->calculate((int) $amount, $term, $kind->bunga_persen_per_bulan) : null;
+        $currency = fn (int $value): string => 'Rp '.number_format($value, 0, ',', '.');
 
         return view('anggota.pinjaman.ajukan', [
-            'member' => $this->memberProfile(),
-            'loanTypes' => $options['loanTypes'],
-            'paymentMethods' => $options['paymentMethods'],
-            'principalEstimate' => $principalEstimate === null ? '-' : 'Rp '.$this->formatDigits($principalEstimate),
-            'interestEstimate' => '-',
-            'monthlyTotalEstimate' => '-',
-            'monthlyInterestRates' => $monthlyInterestRates,
-            'formattedLoanTotal' => $totalInputDigits === '' ? '' : 'Rp '.$this->formatDigits($totalInputDigits),
+            'member' => $overview->memberProfile($member),
+            'loanTypes' => $kinds->map(fn (PinjamanJenis $kind): array => ['value' => $kind->kode, 'label' => $kind->nama])->all(),
+            'loanKindData' => $kinds->keyBy('kode')->map(fn (PinjamanJenis $kind): array => [
+                'bunga_persen_per_bulan' => $kind->bunga_persen_per_bulan, 'plafon_maks' => $kind->plafon_maks,
+                'tenor_maks' => $kind->tenor_maks, 'butuh_dokumen_akad' => $kind->butuh_dokumen_akad,
+            ])->all(),
+            'paymentMethods' => [['value' => 'potong_gaji', 'label' => 'Potong Gaji'], ['value' => 'tunjangan_kinerja', 'label' => 'Tunjangan Kinerja']],
+            'principalEstimate' => $estimate === null ? '-' : $currency($estimate['principal']),
+            'interestEstimate' => $estimate === null ? '-' : $currency($estimate['interest']),
+            'monthlyTotalEstimate' => $estimate === null ? '-' : $currency($estimate['total']),
+            'formattedLoanTotal' => $amount !== null && filter_var($amount, FILTER_VALIDATE_INT) !== false ? $currency((int) $amount) : '',
         ]);
     }
 
-    public function submitLoanApplication(Request $request): RedirectResponse
+    public function simulateLoan(StoreLoanApplicationRequest $request, LoanSimulator $simulator): JsonResponse
     {
-        $originalInput = $request->all();
-        $normalizedTotal = preg_replace('/\D+/', '', (string) $request->input('loan_total', '')) ?? '';
-        $request->merge(['loan_total' => $normalizedTotal]);
-        $options = $this->loanFormOptions();
-        $validator = Validator::make($request->all(), [
-            'loan_type' => ['required', Rule::in(array_column($options['loanTypes'], 'value'))],
-            'loan_total' => [
-                'required',
-                'regex:/^[0-9]+$/',
-                static function (string $attribute, mixed $value, \Closure $fail): void {
-                    if (ltrim((string) $value, '0') === '') {
-                        $fail('Total pinjaman wajib diisi dengan angka, contoh 10000000.');
-                    }
-                },
-            ],
-            'loan_term' => ['required', 'integer', 'min:1'],
-            'payment_method' => ['required', Rule::in(array_column($options['paymentMethods'], 'value'))],
-        ], [
-            'loan_type.required' => 'Pilih jenis pinjaman dulu.',
-            'loan_type.in' => 'Pilih jenis pinjaman dulu.',
-            'loan_total.required' => 'Total pinjaman wajib diisi dengan angka, contoh 10000000.',
-            'loan_total.regex' => 'Total pinjaman wajib diisi dengan angka, contoh 10000000.',
-            'loan_term.required' => 'Tenor wajib diisi dengan angka bulat, contoh 12.',
-            'loan_term.integer' => 'Tenor wajib diisi dengan angka bulat, contoh 12.',
-            'loan_term.min' => 'Tenor wajib diisi dengan angka bulat, contoh 12.',
-            'payment_method.required' => 'Pilih metode pembayaran dulu.',
-            'payment_method.in' => 'Pilih metode pembayaran dulu.',
-        ]);
+        $data = $request->validated();
+        $kind = PinjamanJenis::where('kode', $data['loan_type'])->firstOrFail();
 
-        if ($validator->fails()) {
-            return back()->withErrors($validator)->withInput($originalInput);
-        }
+        return response()->json($simulator->calculate((int) $data['loan_total'], (int) $data['loan_term'], $kind->bunga_persen_per_bulan));
+    }
 
-        // TODO: simpan pengajuan ke database dan kirim ke koperasi.
-        return redirect()->route('anggota.pinjaman.ajukan')->with('status', 'Pengajuan pinjaman Anda sudah dikirim.');
+    public function submitLoanApplication(StoreLoanApplicationRequest $request, LoanApplication $applications): RedirectResponse
+    {
+        $applications->submit($request->user()->anggota, $request->validated());
+
+        return redirect()->route('anggota.pinjaman.riwayat')->with('status', 'Pengajuan pinjaman Anda berhasil dikirim.');
     }
 
     public function loanHistory(Request $request, MemberOverview $overview): View
@@ -524,23 +504,6 @@ class AnggotaController extends Controller
             ->with('status', 'Berkas belum tersedia.');
     }
 
-    private function loanFormOptions(): array
-    {
-        // TODO: sambungkan ke data asli
-        return [
-            'loanTypes' => [
-                ['value' => 'toko', 'label' => 'Toko'],
-                ['value' => 'usp', 'label' => 'Unit Simpan Pinjam'],
-                ['value' => 'usp-khusus', 'label' => 'Unit Simpan Pinjam Khusus'],
-            ],
-            // TODO: sambungkan ke data asli.
-            'paymentMethods' => [
-                ['value' => 'tunjangan-kinerja', 'label' => 'Tunjangan Kinerja'],
-                ['value' => 'potong-gaji', 'label' => 'Potong Gaji'],
-            ],
-        ];
-    }
-
     private function orders(): array
     {
         // TODO: sambungkan ke data asli
@@ -602,51 +565,6 @@ class AnggotaController extends Controller
             && is_string($document['file_path'])
             && $document['file_path'] !== ''
             && Storage::disk('public')->exists($document['file_path']);
-    }
-
-    private function estimatePrincipal(string $total, mixed $term): ?string
-    {
-        $normalizedTotal = ltrim($total, '0');
-        $divisor = filter_var($term, FILTER_VALIDATE_INT);
-
-        if ($normalizedTotal === '' || $divisor === false || $divisor < 1) {
-            return null;
-        }
-
-        $remainder = 0;
-        $quotient = '';
-        foreach (str_split($normalizedTotal) as $digit) {
-            $current = ($remainder * 10) + (int) $digit;
-            $quotient .= (string) intdiv($current, $divisor);
-            $remainder = $current % $divisor;
-        }
-
-        $quotient = ltrim($quotient, '0') ?: '0';
-        if ($remainder >= intdiv($divisor, 2) + ($divisor % 2)) {
-            $quotient = $this->incrementDigits($quotient);
-        }
-
-        return $quotient;
-    }
-
-    private function incrementDigits(string $digits): string
-    {
-        for ($index = strlen($digits) - 1; $index >= 0; $index--) {
-            if ($digits[$index] !== '9') {
-                $digits[$index] = (string) ((int) $digits[$index] + 1);
-
-                return $digits;
-            }
-
-            $digits[$index] = '0';
-        }
-
-        return '1'.$digits;
-    }
-
-    private function formatDigits(string $digits): string
-    {
-        return preg_replace('/\B(?=(\d{3})+(?!\d))/', '.', $digits) ?? $digits;
     }
 
     private function memberProfile(): array

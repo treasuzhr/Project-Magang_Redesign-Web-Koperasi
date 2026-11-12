@@ -2,12 +2,21 @@
 
 namespace Tests\Feature;
 
+use App\Models\PinjamanJenis;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 class MemberLoansTest extends TestCase
 {
     use RefreshDatabase;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+        foreach (['toko' => 'Toko', 'usipa' => 'Unit Simpan Pinjam', 'usipa_khusus' => 'USP Khusus'] as $code => $name) {
+            PinjamanJenis::create(['kode' => $code, 'nama' => $name, 'bunga_persen_per_bulan' => 1, 'plafon_maks' => 50000000, 'tenor_maks' => 36, 'butuh_dokumen_akad' => $code === 'usipa_khusus']);
+        }
+    }
 
     public function test_loan_pages_render_with_shared_sidebar_and_empty_data_states(): void
     {
@@ -30,17 +39,17 @@ class MemberLoansTest extends TestCase
             ->assertSee('<option value="" disabled selected>-- Pilih Metode Pembayaran --</option>', false)
             ->assertSee('value="toko"', false)
             ->assertSee('>Toko</option>', false)
-            ->assertSee('value="usp"', false)
+            ->assertSee('value="usipa"', false)
             ->assertSee('>Unit Simpan Pinjam</option>', false)
-            ->assertSee('value="usp-khusus"', false)
-            ->assertSee('>Unit Simpan Pinjam Khusus</option>', false)
+            ->assertSee('value="usipa_khusus"', false)
+            ->assertSee('>USP Khusus</option>', false)
             ->assertSee('-- Pilih Metode Pembayaran --')
-            ->assertSee('value="tunjangan-kinerja"', false)
+            ->assertSee('value="tunjangan_kinerja"', false)
             ->assertSee('>Tunjangan Kinerja</option>', false)
-            ->assertSee('value="potong-gaji"', false)
+            ->assertSee('value="potong_gaji"', false)
             ->assertSee('>Potong Gaji</option>', false)
             ->assertSee('Simulasi bersifat estimasi, hasil final mengikuti persetujuan koperasi.')
-            ->assertSee('data-monthly-interest-rates="{&quot;toko&quot;:null,&quot;usp&quot;:null,&quot;usp-khusus&quot;:null}"', false);
+            ->assertSee('data-loan-kinds=', false);
 
         $this->memberSession($session)
             ->get('/anggota/pinjaman/riwayat')
@@ -104,7 +113,7 @@ class MemberLoansTest extends TestCase
                 'loan_type' => 'unknown-type',
                 'loan_total' => '10000000',
                 'loan_term' => '12',
-                'payment_method' => 'tunjangan-kinerja',
+                'payment_method' => 'tunjangan_kinerja',
             ])
             ->assertRedirect('/anggota/pinjaman/ajukan')
             ->assertSessionHasErrors(['loan_type' => 'Pilih jenis pinjaman dulu.']);
@@ -113,7 +122,7 @@ class MemberLoansTest extends TestCase
             ->from('/anggota/pinjaman/ajukan')
             ->followingRedirects()
             ->post('/anggota/pinjaman/ajukan', [
-                'loan_type' => 'usp-khusus',
+                'loan_type' => 'usipa_khusus',
                 'loan_total' => '10000000',
                 'loan_term' => '12',
                 'payment_method' => '',
@@ -121,20 +130,20 @@ class MemberLoansTest extends TestCase
 
         $response
             ->assertOk()
-            ->assertSee('<option value="usp-khusus" selected>Unit Simpan Pinjam Khusus</option>', false)
+            ->assertSee('<option value="usipa_khusus" selected>USP Khusus</option>', false)
             ->assertSee('Pilih metode pembayaran dulu.');
     }
 
-    public function test_valid_application_returns_success_notice_without_persisting_dummy_data(): void
+    public function test_valid_application_persists_and_redirects_to_history(): void
     {
         $this->memberSession(['member.authenticated' => true])
             ->post('/anggota/pinjaman/ajukan', [
                 'loan_type' => 'toko',
                 'loan_total' => '10.000.000',
                 'loan_term' => '12',
-                'payment_method' => 'potong-gaji',
+                'payment_method' => 'potong_gaji',
             ])
-            ->assertRedirect('/anggota/pinjaman/ajukan')
-            ->assertSessionHas('status', 'Pengajuan pinjaman Anda sudah dikirim.');
+            ->assertRedirect('/anggota/pinjaman/riwayat')
+            ->assertSessionHas('status', 'Pengajuan pinjaman Anda berhasil dikirim.');
     }
 }

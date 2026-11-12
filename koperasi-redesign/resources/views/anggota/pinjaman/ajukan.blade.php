@@ -34,7 +34,8 @@
                 action="{{ route('anggota.pinjaman.submit') }}"
                 novalidate
                 data-loan-form
-                data-monthly-interest-rates="{{ json_encode($monthlyInterestRates) }}"
+                data-loan-kinds="{{ json_encode($loanKindData) }}"
+                data-simulation-url="{{ route('anggota.pinjaman.simulasi') }}"
             >
                 @csrf
                 <section class="loan-panel loan-form-card member-reveal" data-reveal aria-labelledby="loan-form-title">
@@ -46,7 +47,7 @@
                             label="Jenis pinjaman"
                             type="select"
                             placeholder="-- Pilih Jenis Pinjaman --"
-                            :value="old('loan_type')"
+                            :value="is_scalar(old('loan_type')) ? old('loan_type') : ''"
                             :options="$loanTypes"
                             :error="$errors->has('loan_type') ? $errors->first('loan_type') : null"
                         />
@@ -56,7 +57,7 @@
                             name="loan_total"
                             label="Total pinjaman"
                             placeholder="Contoh: 10000000"
-                            :value="old('loan_total')"
+                            :value="is_scalar(old('loan_total')) ? old('loan_total') : ''"
                             inputmode="numeric"
                             prefix="Rp"
                             :help="$formattedLoanTotal"
@@ -70,7 +71,7 @@
                             name="loan_term"
                             label="Tenor bulan"
                             placeholder="Contoh: 12"
-                            :value="old('loan_term')"
+                            :value="is_scalar(old('loan_term')) ? old('loan_term') : ''"
                             inputmode="numeric"
                             suffix="bulan"
                             :error="$errors->has('loan_term') ? $errors->first('loan_term') : null"
@@ -83,7 +84,7 @@
                             label="Metode pembayaran"
                             type="select"
                             placeholder="-- Pilih Metode Pembayaran --"
-                            :value="old('payment_method')"
+                            :value="is_scalar(old('payment_method')) ? old('payment_method') : ''"
                             :options="$paymentMethods"
                             :error="$errors->has('payment_method') ? $errors->first('payment_method') : null"
                         />
