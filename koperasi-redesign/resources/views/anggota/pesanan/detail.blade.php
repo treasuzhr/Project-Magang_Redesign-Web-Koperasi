@@ -17,6 +17,8 @@
                 :subtitle="'Order tanggal '.$order['date'].'.'"
             />
 
+            <x-anggota.info-box>Status: {{ $order['status'] }}</x-anggota.info-box>
+
             @if ($order['items'] !== [])
                 <section class="member-table-card member-reveal" data-reveal aria-labelledby="order-items-title">
                     <h2 id="order-items-title" class="member-sr-only">Detail barang order</h2>
@@ -57,6 +59,12 @@
                                     </tr>
                                 @endforeach
                             </tbody>
+                            <tfoot>
+                                <tr>
+                                    <th colspan="3" scope="row">Total pesanan</th>
+                                    <td class="member-table__right">Rp {{ number_format($order['total'], 0, ',', '.') }}</td>
+                                </tr>
+                            </tfoot>
                         </table>
                     </div>
                 </section>

@@ -3,6 +3,7 @@
 namespace App;
 
 use App\Models\Anggota;
+use App\Models\Dokumen;
 use App\Models\Pinjaman;
 use App\Models\ShuPeriode;
 use App\Models\SimpananTransaksi;
@@ -214,6 +215,29 @@ class MemberOverview
             ->map(fn ($row): array => ['year' => (int) $row->tahun, 'amount' => (int) $row->total_shu]);
     }
 
+    /** @return array{rows: array<int, array<string, mixed>>, total: int} */
+    public function shuDetail(Anggota $anggota, int $year): array
+    {
+        $period = ShuPeriode::where('tahun', $year)->where('status', 'ditetapkan')->firstOrFail();
+        $allocations = $anggota->shuAnggotas()->where('shu_anggotas.shu_periode_id', $period->id)
+            ->join('shu_komponens', 'shu_komponens.id', '=', 'shu_anggotas.shu_komponen_id')
+            ->select('shu_komponens.kode')->selectRaw('SUM(jumlah_dasar) AS base, SUM(shu) AS amount')
+            ->groupBy('shu_komponens.kode')->get()->keyBy('kode');
+        abort_if($allocations->isEmpty(), 404);
+        $balances = $anggota->simpananTransaksis()->whereIn('jenis', ['pokok', 'wajib'])->where('tanggal', '<=', $year.'-12-31')
+            ->select('jenis')->selectRaw("SUM(CASE WHEN tipe = 'setor' THEN CAST(nominal AS SIGNED) ELSE -CAST(nominal AS SIGNED) END) AS saldo")
+            ->groupBy('jenis')->pluck('saldo', 'jenis');
+        $rows = [
+            ['type' => 'Simpanan Pokok', 'amount' => (int) ($balances['pokok'] ?? 0), 'shu' => '-'],
+            ['type' => 'Simpanan Wajib', 'amount' => (int) ($balances['wajib'] ?? 0), 'shu' => (int) ($allocations->get('simpanan_pokok_wajib')?->amount ?? 0)],
+        ];
+        foreach (['simpanan_sukarela' => 'Simpanan Sukarela', 'belanja' => 'Jumlah Belanja', 'jasa_usipa_anggota' => 'Jasa Sipa Angg', 'jasa_usipa_khusus' => 'Jasa Sipa Sus', 'jasa_umum' => 'Jasa Umum'] as $code => $label) {
+            $rows[] = ['type' => $label, 'amount' => $code === 'jasa_umum' ? null : (int) ($allocations->get($code)?->base ?? 0), 'shu' => (int) ($allocations->get($code)?->amount ?? 0)];
+        }
+
+        return ['rows' => array_map(fn (array $row, int $index): array => array_merge(['number' => $index + 1], $row), $rows, array_keys($rows)), 'total' => (int) $allocations->sum('amount')];
+    }
+
     /** @return Collection<int, array<string, mixed>> */
     public function recentOrders(Anggota $anggota, int $limit = 5): Collection
     {
@@ -224,6 +248,60 @@ class MemberOverview
                 'date' => $order->tanggal->locale('id')->translatedFormat('d F Y'),
                 'status' => $order->status, 'total' => $order->total, 'item_count' => (int) $order->items_count,
             ]);
+    }
+
+    /** @return LengthAwarePaginator<int, array<string, mixed>> */
+    public function orderList(Anggota $anggota, ?string $status = null, int $perPage = 10): LengthAwarePaginator
+    {
+        $paginator = $anggota->pesanans()->withSum('items', 'qty')->withSum('items', 'subtotal')
+            ->when($status !== null, fn (Builder $query) => $query->where('status', $status))
+            ->orderByDesc('tanggal')->orderByDesc('id')->paginate($perPage)->withQueryString();
+        $first = $paginator->firstItem() ?? 0;
+
+        return $paginator->through(fn ($order, int $index): array => [
+            'id' => $order->id, 'number' => $first + $index,
+            'date' => $order->tanggal->locale('id')->translatedFormat('d F Y'),
+            'item_count' => (int) $order->items_sum_qty, 'total' => (int) $order->items_sum_subtotal,
+            'status' => ucfirst($order->status),
+            'action_url' => route('anggota.pesanan.detail', ['id' => $order->id]),
+            'action_aria_label' => 'Lihat detail order tanggal '.$order->tanggal->locale('id')->translatedFormat('d F Y'),
+        ]);
+    }
+
+    /** @return array<string, mixed> */
+    public function orderDetail(Anggota $anggota, int $id): array
+    {
+        $order = $anggota->pesanans()->with(['items' => fn (HasMany $query) => $query->orderBy('id')])->findOrFail($id);
+        $items = $order->items->map(fn ($item): array => [
+            'name' => $item->nama, 'price' => $item->harga, 'quantity' => $item->qty, 'total' => $item->subtotal,
+        ])->all();
+
+        return [
+            'id' => $order->id, 'date' => $order->tanggal->locale('id')->translatedFormat('d F Y'),
+            'status' => ucfirst($order->status), 'items' => $items, 'total' => (int) $order->items->sum('subtotal'),
+        ];
+    }
+
+    public function privateDocumentPath(?string $path): ?string
+    {
+        if ($path === null || trim($path) === '' || str_contains($path, '..') || str_contains($path, ':') || str_contains($path, "\0") || str_starts_with($path, '/') || str_starts_with($path, '\\')) {
+            return null;
+        }
+
+        return Storage::disk('local')->exists($path) ? $path : null;
+    }
+
+    /** @return LengthAwarePaginator<int, array<string, mixed>> */
+    public function publishedDocuments(int $perPage = 10): LengthAwarePaginator
+    {
+        $paginator = Dokumen::where('published', true)->orderByDesc('tahun')->orderByDesc('id')->paginate($perPage)->withQueryString();
+        $first = $paginator->firstItem() ?? 0;
+
+        return $paginator->through(fn ($document, int $index): array => [
+            'id' => $document->id, 'number' => $first + $index, 'title' => $document->judul, 'year' => $document->tahun,
+            'action_url' => $this->privateDocumentPath($document->file_path) !== null ? route('anggota.dokumen.download', ['id' => $document->id]) : null,
+            'action_aria_label' => 'Unduh PDF '.$document->judul, 'action_text' => 'Dokumen belum tersedia',
+        ]);
     }
 
     /** @return array<string, mixed> */

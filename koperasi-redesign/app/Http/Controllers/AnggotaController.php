@@ -6,6 +6,8 @@ use App\Http\Requests\StoreLoanApplicationRequest;
 use App\LoanApplication;
 use App\LoanSimulator;
 use App\MemberOverview;
+use App\Models\Dokumen;
+use App\Models\Pesanan;
 use App\Models\Pinjaman;
 use App\Models\PinjamanJenis;
 use Illuminate\Http\JsonResponse;
@@ -233,38 +235,25 @@ class AnggotaController extends Controller
         ]);
     }
 
-    public function shuIndex(): View|RedirectResponse
+    public function shuIndex(Request $request, MemberOverview $overview): View
     {
-        // TODO: sambungkan ke data asli.
-        $shuData = [
-            ['year' => 2025, 'amount' => 676717],
-            ['year' => 2024, 'amount' => 619000],
-            ['year' => 2023, 'amount' => 422762],
-            ['year' => 2022, 'amount' => 244835],
-            ['year' => 2021, 'amount' => 407235],
-        ];
-
-        $member = $this->memberProfile();
-        $rows = array_map(fn (array $item, int $index): array => [
-            'number' => $index + 1,
-            'nip' => $member['nip'],
-            'name' => 'Agus Wiji Suhariono, S.Kom.',
-            'amount' => $item['amount'],
-            'year' => $item['year'],
+        $anggota = $request->user()->anggota;
+        $anggota->setRelation('user', $request->user());
+        $member = $overview->memberProfile($anggota);
+        $history = $overview->shuHistory($anggota);
+        $rows = $history->map(fn (array $item, int $index): array => [
+            'number' => $index + 1, 'nip' => $member['nip'], 'name' => $member['name'],
+            'amount' => $item['amount'], 'year' => $item['year'],
             'action_url' => route('anggota.shu.detail', ['tahun' => $item['year']]),
             'action_aria_label' => 'Lihat detail SHU tahun '.$item['year'],
-        ], $shuData, array_keys($shuData));
-        $chartData = array_reverse($shuData);
+        ])->all();
 
         return view('anggota.shu.index', [
-            'member' => $member,
-            'rows' => $rows,
-            'chartData' => $chartData,
-            'latestShu' => $shuData[0],
+            'member' => $member, 'rows' => $rows, 'chartData' => $history->reverse()->values()->all(),
+            'latestShu' => $history->first(),
             'columns' => [
                 ['key' => 'number', 'label' => 'No.', 'align' => 'center'],
-                ['key' => 'nip', 'label' => 'NRP'],
-                ['key' => 'name', 'label' => 'Nama'],
+                ['key' => 'nip', 'label' => 'NRP'], ['key' => 'name', 'label' => 'Nama'],
                 ['key' => 'amount', 'label' => 'Jumlah SHU', 'align' => 'right', 'format' => 'currency'],
                 ['key' => 'year', 'label' => 'Tahun', 'align' => 'center'],
                 ['key' => 'action', 'label' => 'Aksi', 'align' => 'center'],
@@ -272,38 +261,15 @@ class AnggotaController extends Controller
         ]);
     }
 
-    public function shuDetail(int $tahun): View|RedirectResponse
+    public function shuDetail(Request $request, MemberOverview $overview, int $tahun): View
     {
-        // TODO: sambungkan ke data asli
-        $shuData = [
-            2025 => [
-                ['number' => 1, 'type' => 'Simpanan Pokok', 'amount' => 100000, 'shu' => '-'],
-                ['number' => 2, 'type' => 'Simpanan Wajib', 'amount' => 5050000, 'shu' => 209308],
-                ['number' => 3, 'type' => 'Simpanan Sukarela', 'amount' => 1550000, 'shu' => 27081],
-                ['number' => 4, 'type' => 'Jumlah Belanja', 'amount' => 1958000, 'shu' => 91410],
-                // TODO: konfirmasi kepanjangan istilah ini dengan koperasi
-                ['number' => 5, 'type' => 'Jasa Sipa Angg', 'amount' => 400000, 'shu' => 110000],
-                // TODO: konfirmasi kepanjangan istilah ini dengan koperasi
-                ['number' => 6, 'type' => 'Jasa Sipa Sus', 'amount' => 0, 'shu' => 0],
-                ['number' => 7, 'type' => 'Jasa Umum', 'amount' => null, 'shu' => 238917],
-            ],
-        ];
-        $shuYears = [2025, 2024, 2023, 2022, 2021];
-        abort_unless(in_array($tahun, $shuYears, true), 404);
+        $anggota = $request->user()->anggota;
+        $anggota->setRelation('user', $request->user());
+        $detail = $overview->shuDetail($anggota, $tahun);
 
         return view('anggota.shu.detail', [
-            'member' => $this->memberProfile(),
-            'tahun' => $tahun,
-            'rows' => $shuData[$tahun] ?? [],
-            'totalRows' => $tahun === 2025
-                ? [[
-                    'label' => 'SHU Seluruhnya',
-                    'label_span' => 2,
-                    'class' => 'shu-table-total',
-                    'amount' => '',
-                    'shu' => 676717,
-                ]]
-                : [],
+            'member' => $overview->memberProfile($anggota), 'tahun' => $tahun, 'rows' => $detail['rows'],
+            'totalRows' => [['label' => 'SHU Seluruhnya', 'label_span' => 2, 'class' => 'shu-table-total', 'amount' => '', 'shu' => $detail['total']]],
             'columns' => [
                 ['key' => 'number', 'label' => 'No.', 'align' => 'center'],
                 ['key' => 'type', 'label' => 'Jenis'],
@@ -426,58 +392,54 @@ class AnggotaController extends Controller
         return Storage::disk('local')->download($path);
     }
 
-    public function orderIndex(): View|RedirectResponse
+    public function orderIndex(Request $request, MemberOverview $overview): View
     {
-        $rows = array_values($this->orders());
-        foreach ($rows as &$row) {
-            $row['action_url'] = route('anggota.pesanan.detail', ['id' => $row['id']]);
-            $row['action_aria_label'] = "Lihat detail order tanggal {$row['date']}";
-        }
-        unset($row);
+        $filters = $request->validate([
+            'status' => ['nullable', 'string', Rule::in(Pesanan::STATUSES)],
+            'per_page' => ['nullable', 'integer', Rule::in([10, 25, 50])],
+            'page' => ['nullable', 'integer', 'min:1'],
+        ], ['status.in' => 'Status pesanan tidak valid.', 'per_page.in' => 'Pilih 10, 25, atau 50 data per halaman.']);
+        $anggota = $request->user()->anggota;
+        $anggota->setRelation('user', $request->user());
+        $paginator = $overview->orderList($anggota, $filters['status'] ?? null, (int) ($filters['per_page'] ?? 10));
 
         return view('anggota.pesanan.index', [
-            'member' => $this->memberProfile(),
-            'rows' => $rows,
+            'member' => $overview->memberProfile($anggota), 'rows' => $paginator->items(), 'paginator' => $paginator,
             'columns' => [
-                ['key' => 'id', 'label' => 'No.', 'align' => 'center'],
+                ['key' => 'number', 'label' => 'No.', 'align' => 'center'],
                 ['key' => 'date', 'label' => 'Tanggal order'],
                 ['key' => 'item_count', 'label' => 'Jumlah barang', 'align' => 'center'],
                 ['key' => 'total', 'label' => 'Total harga', 'align' => 'right', 'format' => 'currency'],
+                ['key' => 'status', 'label' => 'Status', 'format' => 'badge'],
                 ['key' => 'action', 'label' => 'Aksi', 'align' => 'center', 'action_label' => 'Lihat detail'],
             ],
         ]);
     }
 
-    public function orderDetail(int $id): View|RedirectResponse
+    public function orderDetail(Request $request, MemberOverview $overview, int $id): View
     {
-        $orders = $this->orders();
-        abort_unless(isset($orders[$id]), 404);
+        $anggota = $request->user()->anggota;
+        $anggota->setRelation('user', $request->user());
 
         return view('anggota.pesanan.detail', [
-            'member' => $this->memberProfile(),
-            'order' => $orders[$id],
+            'member' => $overview->memberProfile($anggota), 'order' => $overview->orderDetail($anggota, $id),
         ]);
     }
 
-    public function documentIndex(): View|RedirectResponse
+    public function documentIndex(Request $request, MemberOverview $overview): View
     {
-        $rows = array_values($this->documents());
-        foreach ($rows as &$row) {
-            $row['action_url'] = route('anggota.dokumen.download', ['id' => $row['id']]);
-            $row['action_aria_label'] = "Unduh PDF {$row['title']}";
-
-            if ($this->documentFileExists($row)) {
-                $row['action_target'] = '_blank';
-                $row['action_rel'] = 'noopener';
-            }
-        }
-        unset($row);
+        $filters = $request->validate([
+            'per_page' => ['nullable', 'integer', Rule::in([10, 25, 50])],
+            'page' => ['nullable', 'integer', 'min:1'],
+        ], ['per_page.in' => 'Pilih 10, 25, atau 50 data per halaman.']);
+        $anggota = $request->user()->anggota;
+        $anggota->setRelation('user', $request->user());
+        $paginator = $overview->publishedDocuments((int) ($filters['per_page'] ?? 10));
 
         return view('anggota.dokumen.index', [
-            'member' => $this->memberProfile(),
-            'rows' => $rows,
+            'member' => $overview->memberProfile($anggota), 'rows' => $paginator->items(), 'paginator' => $paginator,
             'columns' => [
-                ['key' => 'id', 'label' => 'No.', 'align' => 'center'],
+                ['key' => 'number', 'label' => 'No.', 'align' => 'center'],
                 ['key' => 'title', 'label' => 'Judul'],
                 ['key' => 'action', 'label' => 'Dokumen', 'align' => 'center', 'action_label' => 'Unduh PDF', 'action_icon' => 'pdf', 'action_class' => 'member-table-action--document'],
                 ['key' => 'year', 'label' => 'Tahun', 'align' => 'center'],
@@ -485,23 +447,15 @@ class AnggotaController extends Controller
         ]);
     }
 
-    public function downloadDocument(int $id): RedirectResponse|StreamedResponse
+    public function downloadDocument(MemberOverview $overview, int $id): RedirectResponse|StreamedResponse
     {
-        $documents = $this->documents();
-        abort_unless(isset($documents[$id]), 404);
-        $document = $documents[$id];
-
-        if ($this->documentFileExists($document)) {
-            return Storage::disk('public')->download(
-                $document['file_path'],
-                $document['file_name'] ?? basename($document['file_path']),
-            );
+        $document = Dokumen::where('published', true)->findOrFail($id);
+        $path = $overview->privateDocumentPath($document->file_path);
+        if ($path === null) {
+            return redirect()->route('anggota.dokumen.index')->with('status', 'Dokumen belum tersedia');
         }
 
-        // TODO: sambungkan ke file PDF asli
-        return redirect()
-            ->route('anggota.dokumen.index')
-            ->with('status', 'Berkas belum tersedia.');
+        return Storage::disk('local')->download($path, basename($path));
     }
 
     private function orders(): array

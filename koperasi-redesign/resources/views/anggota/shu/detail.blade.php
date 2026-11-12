@@ -26,7 +26,7 @@
                 title="Detail data SHU"
                 :columns="$columns"
                 :rows="$rows"
-                :empty-text="$tahun === 2025 ? 'Belum ada data.' : 'Detail belum tersedia.'"
+                empty-text="Belum ada data."
                 :footer-rows="$totalRows"
                 table-class="shu-detail-table"
                 :show-controls="false"

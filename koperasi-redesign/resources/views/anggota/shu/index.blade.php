@@ -16,6 +16,7 @@
                 subtitle="Sisa Hasil Usaha Anda per tahun."
             />
 
+            @if ($latestShu !== null)
             <section class="shu-summary member-reveal" data-reveal aria-label="Ringkasan SHU">
                 <div class="shu-summary__content">
                     <span class="shu-summary__label">SHU tahun {{ $latestShu['year'] }}</span>
@@ -27,6 +28,10 @@
                 </div>
                 <x-anggota.shu-chart :data="$chartData" :latest-year="$latestShu['year']" />
             </section>
+
+            @else
+                <x-anggota.info-box>Data SHU belum tersedia.</x-anggota.info-box>
+            @endif
 
             <div class="shu-data-table">
                 <x-anggota.data-table

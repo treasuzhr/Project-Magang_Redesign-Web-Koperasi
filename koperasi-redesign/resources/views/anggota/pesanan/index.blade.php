@@ -20,6 +20,7 @@
                 caption="Data riwayat order"
                 :columns="$columns"
                 :rows="$rows"
+                :paginator="$paginator"
                 empty-text="Belum ada pesanan."
                 stack-mobile
                 table-class="member-orders-table"

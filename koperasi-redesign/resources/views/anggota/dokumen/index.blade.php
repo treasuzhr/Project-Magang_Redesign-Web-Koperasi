@@ -24,6 +24,7 @@
                 caption="Daftar dokumen koperasi"
                 :columns="$columns"
                 :rows="$rows"
+                :paginator="$paginator"
                 empty-text="Belum ada dokumen."
                 stack-mobile
                 table-class="member-documents-table"

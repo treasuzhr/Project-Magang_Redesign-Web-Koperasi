@@ -45,6 +45,8 @@
                                             @endif
                                             <span>{{ $column['action_label'] ?? 'Lihat detail' }}</span>
                                         </a>
+                                    @elseif (! empty($row['action_text']))
+                                        <span>{{ $row['action_text'] }}</span>
                                     @endif
                                 @elseif (($column['format'] ?? null) === 'currency')
                                     @if (is_numeric($row[$key] ?? null))
