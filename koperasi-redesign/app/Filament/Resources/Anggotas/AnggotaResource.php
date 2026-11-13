@@ -7,6 +7,7 @@ use App\Filament\Resources\Anggotas\Pages\CreateAnggota;
 use App\Filament\Resources\Anggotas\Pages\EditAnggota;
 use App\Filament\Resources\Anggotas\Pages\ListAnggotas;
 use App\Models\Anggota;
+use Carbon\Carbon;
 use Filament\Actions\Action;
 use Filament\Actions\EditAction;
 use Filament\Forms\Components\DatePicker;
@@ -56,11 +57,11 @@ class AnggotaResource extends Resource
             TextColumn::make('nomor_anggota')->label('Nomor anggota')->searchable()->placeholder('-'),
             TextColumn::make('nama')->label('Nama')->searchable()->sortable(),
             TextColumn::make('user.nip')->label('NIP/NRP')->searchable(),
-            TextColumn::make('pangkat_golongan')->label('Pangkat / golongan')->placeholder('-'),
-            TextColumn::make('tanggal_masuk')->label('Tanggal masuk')->date('d/m/Y')->sortable(),
+            TextColumn::make('pangkat_golongan')->label('Pangkat / golongan')->toggleable(isToggledHiddenByDefault: true)->placeholder('-'),
+            TextColumn::make('tanggal_masuk')->label('Tanggal masuk')->formatStateUsing(fn (mixed $state): string => Carbon::parse($state)->locale('id')->translatedFormat('d M Y'))->sortable(),
             TextColumn::make('status')->label('Status')->badge()->formatStateUsing(fn (string $state): string => ucfirst($state))
                 ->color(fn (string $state): string => $state === 'aktif' ? 'success' : 'gray'),
-        ])->defaultSort('nama')->filters([
+        ])->defaultPaginationPageOption(25)->emptyStateHeading('Belum ada anggota yang sesuai')->defaultSort('nama')->filters([
             SelectFilter::make('status')->label('Status')->options(array_combine(Anggota::STATUSES, array_map('ucfirst', Anggota::STATUSES))),
         ])->recordActions([
             EditAction::make()->label('Ubah'),

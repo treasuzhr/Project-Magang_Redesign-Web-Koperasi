@@ -1,12 +1,15 @@
 <?php
 
 use App\DatabaseProductSource;
+use App\Http\Controllers\AdminLoanDocumentController;
+use App\Http\Controllers\AdminProductTemplateController;
 use App\Http\Controllers\AnggotaController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\LoginCaptchaController;
 use App\Http\Controllers\PasswordController;
 use App\Http\Controllers\ProductController;
+use App\Http\Middleware\RequirePasswordChange;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Route;
@@ -139,3 +142,9 @@ Route::get('/keranjang/produk', [CartController::class, 'products'])->middleware
 Route::get('/checkout', [CartController::class, 'showCheckout'])->name('checkout.show');
 Route::post('/checkout', [CartController::class, 'store'])
     ->middleware(['auth', 'role:anggota', 'throttle:checkout'])->block(10, 10)->name('checkout.store');
+
+Route::get('/admin/pinjaman/{pinjaman}/akad', AdminLoanDocumentController::class)
+    ->middleware(['auth', 'role:admin', RequirePasswordChange::class])->whereNumber('pinjaman')->name('admin.pinjaman.akad');
+
+Route::get('/admin/produk-template.csv', AdminProductTemplateController::class)
+    ->middleware(['auth', 'role:admin', RequirePasswordChange::class])->name('admin.produk.template');
