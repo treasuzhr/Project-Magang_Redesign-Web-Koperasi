@@ -81,6 +81,22 @@ Migrasi tersebut menyiapkan tabel bawaan seperti pengguna, sesi, cache, dan antr
 
 Pastikan `APP_URL` di `.env` sesuai alamat server, misalnya `http://127.0.0.1:8000`. Jika memakai PostgreSQL nanti, sesuaikan koneksi dan kredensial database pada `.env` masing-masing; jangan commit kredensial tersebut.
 
+## Akun demo lokal
+
+Seeder menyediakan tiga akun untuk mencoba aplikasi melalui `/login`:
+
+| Peran | NIP/NRP | Password awal |
+| --- | --- | --- |
+| Admin | `900000000000000001` | `DemoPrimkop!2026` |
+| Anggota demo pertama | `900000000000000002` | `DemoPrimkop!2026` |
+| Anggota demo kedua | `900000000000000003` | `DemoPrimkop!2026` |
+
+Ketiga akun wajib mengganti password saat login pertama. Seeder tetap membuat 18 anggota fiktif lainnya dengan NIP berurutan `900000000000000004` sampai `900000000000000021`. Password mereka acak dan tidak dibagikan untuk login. Semua NIP seed dan factory adalah string 18 digit berawalan 9; form login tetap menerima NIP/NRP asli yang mengandung huruf atau garis miring.
+
+Anggota demo kedua memiliki satu pinjaman berjalan dengan angsuran tunggak, saldo sukarela dan riwayat SHU yang berbeda dari anggota pertama, serta 25 pesanan fiktif.
+
+Data seeder hanya untuk pengembangan lokal dan pengujian. Database lokal menggunakan MySQL; test otomatis menggunakan SQLite dalam memori sesuai `phpunit.xml`. `php artisan migrate:fresh --seed` membuat ulang seluruh tabel dan menghapus data lokal sebelumnya.
+
 ## Menjalankan proyek
 
 ### Melihat hasil build

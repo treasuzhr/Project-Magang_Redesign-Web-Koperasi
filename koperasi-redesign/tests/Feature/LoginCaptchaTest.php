@@ -15,7 +15,7 @@ class LoginCaptchaTest extends TestCase
         $response = $this->get('/login');
         $captchaCode = session('captcha_answer');
 
-        $response->assertOk()->assertSee('id="captchaCode"', false)->assertSee(route('login.captcha', ['image' => 1]), false);
+        $response->assertOk()->assertSee('NIP/NRP')->assertSee('id="captchaCode"', false)->assertSee(route('login.captcha', ['image' => 1]), false);
         $this->assertMatchesRegularExpression('/\A[A-HJ-NP-Z2-9]{6}\z/', $captchaCode);
     }
 

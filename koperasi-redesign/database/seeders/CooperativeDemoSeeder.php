@@ -21,9 +21,11 @@ use LogicException;
 
 class CooperativeDemoSeeder extends Seeder
 {
-    public const ADMIN_NIP = 'DEMO-ADMIN-001';
+    public const ADMIN_NIP = '900000000000000001';
 
-    public const ANGGOTA_NIP = 'DEMO-ANGGOTA-001';
+    public const ANGGOTA_NIP = '900000000000000002';
+
+    public const ANGGOTA_KEDUA_NIP = '900000000000000003';
 
     public const PASSWORD = 'DemoPrimkop!2026';
 
@@ -49,8 +51,9 @@ class CooperativeDemoSeeder extends Seeder
             for ($index = 1; $index <= 20; $index++) {
                 $suffix = str_pad((string) $index, 3, '0', STR_PAD_LEFT);
                 $user = User::create([
-                    'nip' => 'DEMO-ANGGOTA-'.$suffix, 'name' => 'Anggota Fiktif '.$suffix,
-                    'email' => null, 'password' => $password, 'role' => 'anggota',
+                    'nip' => $index === 1 ? self::ANGGOTA_NIP : '900000000000000'.str_pad((string) ($index + 1), 3, '0', STR_PAD_LEFT),
+                    'name' => 'Anggota Fiktif '.$suffix,
+                    'email' => null, 'password' => $index <= 2 ? $password : Hash::make(Str::password(32)), 'role' => 'anggota',
                     'must_change_password' => true,
                 ]);
                 $joined = match ($index) {
@@ -146,6 +149,7 @@ class CooperativeDemoSeeder extends Seeder
         foreach (['diajukan', 'disetujui', 'ditolak', 'berjalan'] as $index => $status) {
             $this->loan($members[$index + 3], $kinds[PinjamanJenis::KODE[$index % 3]], $status, '2025-08-15', 'DEMO-PIN-STATUS-'.$status);
         }
+        $this->loan($members[1], $kinds['usipa'], 'berjalan', '2025-08-15', 'DEMO-PIN-ANGGOTA-KEDUA');
     }
 
     private function loan(Anggota $member, PinjamanJenis $kind, string $status, string $date, string $code): void

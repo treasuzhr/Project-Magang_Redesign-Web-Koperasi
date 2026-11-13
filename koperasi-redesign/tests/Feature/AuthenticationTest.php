@@ -32,7 +32,7 @@ class AuthenticationTest extends TestCase
 
     public function test_active_member_logs_in_using_nip_and_regenerates_the_session(): void
     {
-        $user = $this->member();
+        $user = $this->member(['nip' => 'NRP/AB-123']);
         $this->withSession(['captcha_answer' => 'AB2CDE', 'member.authenticated' => true]);
         $sessionId = session()->getId();
         $this->post('/login', ['member_id' => $user->nip, 'password' => 'password', 'captcha' => 'AB2CDE'])
@@ -180,7 +180,7 @@ class AuthenticationTest extends TestCase
         $this->get('/')->assertOk()->assertSee('>Masuk</a>', false)->assertDontSee('class="nav-user"', false);
         $admin = User::factory()->create(['role' => 'admin', 'must_change_password' => false]);
         $this->actingAs($admin)->get('/')->assertOk()->assertSee($admin->name)
-            ->assertSee('href="'.route('admin.dashboard').'"', false)->assertSee('action="'.route('logout').'"', false);
+            ->assertSee('href="'.route('filament.admin.pages.dashboard').'"', false)->assertSee('action="'.route('logout').'"', false);
     }
 
     public function test_deactivated_member_is_logged_out_on_the_next_request(): void
@@ -207,7 +207,7 @@ class AuthenticationTest extends TestCase
     public function test_seeded_demo_accounts_login_and_are_required_to_change_password(): void
     {
         $this->seed(CooperativeDemoSeeder::class);
-        foreach ([CooperativeDemoSeeder::ADMIN_NIP, CooperativeDemoSeeder::ANGGOTA_NIP] as $nip) {
+        foreach ([CooperativeDemoSeeder::ADMIN_NIP, CooperativeDemoSeeder::ANGGOTA_NIP, CooperativeDemoSeeder::ANGGOTA_KEDUA_NIP] as $nip) {
             $user = User::where('nip', $nip)->firstOrFail();
             $this->login($user, CooperativeDemoSeeder::PASSWORD)->assertRedirect('/ganti-password');
             $this->assertAuthenticatedAs($user);

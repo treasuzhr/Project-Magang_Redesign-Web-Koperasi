@@ -915,7 +915,7 @@
 
                 <div class="login-header">
                     <h2>Masuk ke akun anggota</h2>
-                    <p>Masuk dengan NRP/NIP yang terdaftar.</p>
+                    <p>Masuk dengan NIP/NRP yang terdaftar.</p>
                 </div>
 
                 <form class="login-form" method="POST" action="{{ route('login.submit') }}" id="loginForm">
@@ -928,12 +928,12 @@
                     </div>
 
                     <div class="field-group">
-                        <label for="memberId">NRP / NIP</label>
+                        <label for="memberId">NIP/NRP</label>
                         <div class="input-wrap">
                             <span class="field-icon" aria-hidden="true">
                                 <svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.5"></circle><path d="M5 20c.5-3.5 2.8-5.3 7-5.3s6.5 1.8 7 5.3"></path></svg>
                             </span>
-                            <input id="memberId" name="member_id" type="text" placeholder="Masukkan NRP / NIP" autocomplete="username" value="{{ old('member_id') }}" required @if ($errors->has('member_id')) aria-invalid="true" aria-describedby="memberIdError" @endif>
+                            <input id="memberId" name="member_id" type="text" placeholder="Masukkan NIP/NRP" autocomplete="username" value="{{ old('member_id') }}" required @if ($errors->has('member_id')) aria-invalid="true" aria-describedby="memberIdError" @endif>
                         </div>
                         @if ($errors->has('member_id'))
                             <p class="field-error" id="memberIdError">{{ $errors->first('member_id') }}</p>

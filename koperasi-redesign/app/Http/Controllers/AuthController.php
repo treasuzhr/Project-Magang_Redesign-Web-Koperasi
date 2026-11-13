@@ -83,6 +83,6 @@ class AuthController extends Controller
 
     public static function dashboardRoute(User $user): string
     {
-        return $user->role === 'admin' ? 'admin.dashboard' : 'anggota.dashboard';
+        return $user->role === 'admin' ? 'filament.admin.pages.dashboard' : 'anggota.dashboard';
     }
 }

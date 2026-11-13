@@ -18,6 +18,7 @@ use App\Models\SimpananTransaksi;
 use App\Models\User;
 use Database\Seeders\CooperativeDemoSeeder;
 use Database\Seeders\DatabaseSeeder;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
@@ -42,7 +43,7 @@ class CooperativeDatabaseTest extends TestCase
         $this->assertSame(15, Produk::count());
         $this->assertSame(3, Berita::count());
         $this->assertSame(5, Dokumen::count());
-        foreach ([CooperativeDemoSeeder::ADMIN_NIP => 'admin', CooperativeDemoSeeder::ANGGOTA_NIP => 'anggota'] as $nip => $role) {
+        foreach ([CooperativeDemoSeeder::ADMIN_NIP => 'admin', CooperativeDemoSeeder::ANGGOTA_NIP => 'anggota', CooperativeDemoSeeder::ANGGOTA_KEDUA_NIP => 'anggota'] as $nip => $role) {
             $user = User::where('nip', $nip)->firstOrFail();
             $this->assertSame($role, $user->role);
             $this->assertTrue($user->must_change_password);
@@ -57,7 +58,50 @@ class CooperativeDatabaseTest extends TestCase
             $this->assertSame($article['sections'], $saved->isi['sections']);
         }
         $this->assertSame(0, Dokumen::where('published', true)->count());
-        $this->assertTrue(User::all()->every(fn (User $user): bool => str_starts_with($user->nip, 'DEMO-')));
+        $users = User::orderBy('id')->get();
+        $expectedNips = array_map(fn (int $index): string => '900000000000000'.str_pad((string) $index, 3, '0', STR_PAD_LEFT), range(1, 21));
+        $this->assertSame($expectedNips, $users->pluck('nip')->all());
+        $demoNips = [CooperativeDemoSeeder::ADMIN_NIP, CooperativeDemoSeeder::ANGGOTA_NIP, CooperativeDemoSeeder::ANGGOTA_KEDUA_NIP];
+        foreach ($users as $user) {
+            $this->assertIsString($user->nip);
+            $this->assertMatchesRegularExpression('/\A9[0-9]{17}\z/', $user->nip);
+            $this->assertSame(in_array($user->nip, $demoNips, true), Hash::check(CooperativeDemoSeeder::PASSWORD, $user->password));
+            $this->assertArrayNotHasKey('password', $user->toArray());
+        }
+
+    }
+
+    public function test_second_demo_member_has_distinct_savings_shu_orders_and_an_overdue_running_loan(): void
+    {
+        $this->travelTo(now()->setDate(2026, 11, 13)->startOfDay());
+        $this->seedDemo();
+        $first = User::where('nip', CooperativeDemoSeeder::ANGGOTA_NIP)->firstOrFail()->anggota;
+        $second = User::where('nip', CooperativeDemoSeeder::ANGGOTA_KEDUA_NIP)->firstOrFail()->anggota;
+        $this->assertNotSame($first->saldo_sukarela, $second->saldo_sukarela);
+        $firstShu = $first->shuAnggotas()->whereHas('periode', fn (Builder $query): Builder => $query->where('status', 'ditetapkan'))
+            ->selectRaw('shu_periode_id, SUM(shu) as total')->groupBy('shu_periode_id')->orderBy('shu_periode_id')->pluck('total', 'shu_periode_id')->all();
+        $secondShu = $second->shuAnggotas()->whereHas('periode', fn (Builder $query): Builder => $query->where('status', 'ditetapkan'))
+            ->selectRaw('shu_periode_id, SUM(shu) as total')->groupBy('shu_periode_id')->orderBy('shu_periode_id')->pluck('total', 'shu_periode_id')->all();
+        $this->assertNotEmpty($secondShu);
+        $this->assertNotSame($firstShu, $secondShu);
+        $this->assertGreaterThanOrEqual(3, $second->pesanans()->count());
+        $loan = $second->pinjamans()->where('status', 'berjalan')->firstOrFail();
+        $this->assertTrue($loan->angsurans()->where('status', 'tunggak')->whereDate('jatuh_tempo', '<', today())->exists());
+        $this->travelBack();
+    }
+
+    public function test_second_demo_member_cannot_access_first_demo_members_loans_or_orders(): void
+    {
+        $this->withoutVite();
+        $this->seedDemo();
+        $first = User::where('nip', CooperativeDemoSeeder::ANGGOTA_NIP)->firstOrFail()->anggota;
+        $secondUser = User::where('nip', CooperativeDemoSeeder::ANGGOTA_KEDUA_NIP)->firstOrFail();
+        $secondUser->update(['must_change_password' => false]);
+        $second = $secondUser->anggota;
+        $this->actingAs($secondUser)->get('/anggota/pinjaman/'.$second->pinjamans()->where('status', 'berjalan')->firstOrFail()->id)->assertOk();
+        $this->get('/anggota/pesanan/'.$second->pesanans()->firstOrFail()->id)->assertOk();
+        $this->get('/anggota/pinjaman/'.$first->pinjamans()->firstOrFail()->id)->assertNotFound();
+        $this->get('/anggota/pesanan/'.$first->pesanans()->firstOrFail()->id)->assertNotFound();
     }
 
     public function test_seeding_twice_preserves_existing_accounts_and_does_not_duplicate_transactions(): void
@@ -168,7 +212,7 @@ class CooperativeDatabaseTest extends TestCase
                 }
             }
         }
-        $partial = User::where('nip', 'DEMO-ANGGOTA-019')->firstOrFail()->anggota;
+        $partial = User::where('nip', '900000000000000020')->firstOrFail()->anggota;
         $this->assertSame(6, $partial->shuAnggotas()->whereHas('periode', fn ($query) => $query->where('tahun', 2025))->where('kode_komponen', 'jasa_umum')->firstOrFail()->bulan_aktif);
         $this->assertSame(0, $partial->shuAnggotas()->whereHas('periode', fn ($query) => $query->where('tahun', '<', 2025))->count());
     }
@@ -218,9 +262,9 @@ class CooperativeDatabaseTest extends TestCase
 
     public function test_unique_nip_is_enforced(): void
     {
-        User::factory()->create(['nip' => 'DEMO-DUPLICATE']);
+        User::factory()->create(['nip' => '900000000000000099']);
         $this->expectException(QueryException::class);
-        User::factory()->create(['nip' => 'DEMO-DUPLICATE']);
+        User::factory()->create(['nip' => '900000000000000099']);
     }
 
     public function test_shu_component_must_belong_to_the_same_period_and_code(): void

@@ -88,7 +88,6 @@ Route::post('/logout', [AuthController::class, 'destroy'])->name('logout');
 Route::middleware('auth')->group(function () {
     Route::get('/ganti-password', [PasswordController::class, 'edit'])->name('password.edit');
     Route::post('/ganti-password', [PasswordController::class, 'update'])->name('password.update');
-    Route::view('/admin', 'admin.dashboard')->middleware('role:admin')->name('admin.dashboard');
 });
 
 Route::middleware(['auth', 'role:anggota'])->group(function () {
