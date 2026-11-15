@@ -35,33 +35,57 @@ class AdminOverview
         ];
     }
 
-    /** @return array{labels: array<int, string>, setor: array<int, int>, tarik: array<int, int>} */
-    public function monthlySavings(): array
+    /** @return array<int, int> */
+    public function savingsYears(): array
     {
-        $months = $this->months();
-        $rows = DB::table('simpanan_transaksis')->where('tanggal', '>=', $months[0]->toDateString())->where('tanggal', '<', today()->addDay()->toDateString())
-            ->selectRaw($this->monthExpression('tanggal').' AS month')
+        return $this->yearsFor('simpanan_transaksis', 'tanggal');
+    }
+
+    /** @return array<int, int> */
+    public function orderYears(): array
+    {
+        return $this->yearsFor('pesanans', 'tanggal');
+    }
+
+    /** @return array{labels: array<int, string>, setor: array<int, int>, tarik: array<int, int>, hasData: bool} */
+    public function monthlySavings(int $year): array
+    {
+        $monthExpression = $this->monthExpression('tanggal');
+        $rows = DB::table('simpanan_transaksis')
+            ->where('tanggal', '>=', sprintf('%04d-01-01', $year))
+            ->where('tanggal', '<', sprintf('%04d-01-01', $year + 1))
+            ->selectRaw($monthExpression.' AS month')
             ->selectRaw("SUM(CASE WHEN tipe = 'setor' THEN nominal ELSE 0 END) AS setor, SUM(CASE WHEN tipe = 'tarik' THEN nominal ELSE 0 END) AS tarik")
-            ->groupByRaw($this->monthExpression('tanggal'))->get()->keyBy('month');
+            ->groupByRaw($monthExpression)
+            ->get()
+            ->keyBy(fn (object $row): int => (int) $row->month);
+        $months = range(1, 12);
 
         return [
-            'labels' => array_map(fn (CarbonImmutable $month): string => $month->locale('id')->translatedFormat('M Y'), $months),
-            'setor' => array_map(fn (CarbonImmutable $month): int => (int) ($rows->get($month->format('Y-m'))?->setor ?? 0), $months),
-            'tarik' => array_map(fn (CarbonImmutable $month): int => (int) ($rows->get($month->format('Y-m'))?->tarik ?? 0), $months),
+            'labels' => array_map(fn (int $month): string => CarbonImmutable::create(2020, $month, 1)->locale('id')->translatedFormat('M'), $months),
+            'setor' => array_map(fn (int $month): int => (int) ($rows->get($month)?->setor ?? 0), $months),
+            'tarik' => array_map(fn (int $month): int => (int) ($rows->get($month)?->tarik ?? 0), $months),
+            'hasData' => $rows->isNotEmpty(),
         ];
     }
 
-    /** @return array{labels: array<int, string>, counts: array<int, int>} */
-    public function monthlyOrders(): array
+    /** @return array{labels: array<int, string>, counts: array<int, int>, hasData: bool} */
+    public function monthlyOrders(int $year): array
     {
-        $months = $this->months();
-        $rows = DB::table('pesanans')->whereBetween('tanggal', [$months[0]->startOfDay()->toDateTimeString(), now()->toDateTimeString()])
-            ->selectRaw($this->monthExpression('tanggal').' AS month, COUNT(*) AS total')
-            ->groupByRaw($this->monthExpression('tanggal'))->pluck('total', 'month');
+        $monthExpression = $this->monthExpression('tanggal');
+        $rows = DB::table('pesanans')
+            ->where('tanggal', '>=', sprintf('%04d-01-01', $year))
+            ->where('tanggal', '<', sprintf('%04d-01-01', $year + 1))
+            ->selectRaw($monthExpression.' AS month, COUNT(*) AS total')
+            ->groupByRaw($monthExpression)
+            ->get()
+            ->keyBy(fn (object $row): int => (int) $row->month);
+        $months = range(1, 12);
 
         return [
-            'labels' => array_map(fn (CarbonImmutable $month): string => $month->locale('id')->translatedFormat('M Y'), $months),
-            'counts' => array_map(fn (CarbonImmutable $month): int => (int) ($rows[$month->format('Y-m')] ?? 0), $months),
+            'labels' => array_map(fn (int $month): string => CarbonImmutable::create(2020, $month, 1)->locale('id')->translatedFormat('M'), $months),
+            'counts' => array_map(fn (int $month): int => (int) ($rows->get($month)?->total ?? 0), $months),
+            'hasData' => $rows->isNotEmpty(),
         ];
     }
 
@@ -73,16 +97,27 @@ class AdminOverview
         return ['labels' => array_map('ucfirst', Pinjaman::STATUSES), 'counts' => array_map(fn (string $status): int => (int) ($counts[$status] ?? 0), Pinjaman::STATUSES)];
     }
 
-    /** @return array<int, CarbonImmutable> */
-    private function months(): array
+    /** @return array<int, int> */
+    private function yearsFor(string $table, string $column): array
     {
-        $start = CarbonImmutable::today()->startOfMonth()->subMonths(11);
+        $yearExpression = $this->yearExpression($column);
 
-        return array_map(fn (int $offset): CarbonImmutable => $start->addMonths($offset), range(0, 11));
+        return DB::table($table)
+            ->selectRaw($yearExpression.' AS year')
+            ->groupByRaw($yearExpression)
+            ->orderByDesc('year')
+            ->pluck('year')
+            ->map(fn (mixed $year): int => (int) $year)
+            ->all();
     }
 
     private function monthExpression(string $column): string
     {
-        return DB::getDriverName() === 'sqlite' ? "strftime('%Y-%m', $column)" : "DATE_FORMAT($column, '%Y-%m')";
+        return DB::getDriverName() === 'sqlite' ? "CAST(strftime('%m', $column) AS INTEGER)" : "MONTH($column)";
+    }
+
+    private function yearExpression(string $column): string
+    {
+        return DB::getDriverName() === 'sqlite' ? "CAST(strftime('%Y', $column) AS INTEGER)" : "YEAR($column)";
     }
 }

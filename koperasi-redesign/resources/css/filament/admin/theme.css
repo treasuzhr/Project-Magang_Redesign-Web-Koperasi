@@ -30,33 +30,38 @@
 }
 
 /* Admin shell: retain native drawer, persisted collapse state, and tooltips. */
-.fi-body-has-topbar .fi-sidebar-header { display: flex; flex-shrink: 0; padding-inline: 18px; border-bottom: 1px solid #86B23933; box-shadow: none; }
+.fi-body { --topbar-height: 3.5rem; }
+.fi-topbar { height: var(--topbar-height); min-height: var(--topbar-height); padding-inline: 14px; }
+.fi-body-has-topbar .fi-sidebar-header { display: flex; flex: 0 0 var(--topbar-height); height: var(--topbar-height); min-height: var(--topbar-height); padding-inline: 14px; border-bottom: 1px solid #86B23933; box-shadow: none; }
 .primkop-admin-brand { gap: 10px; white-space: nowrap; font-size: 1.05rem; }
-.primkop-admin-brand img { width: 36px; height: 40px; object-fit: contain; }
-.primkop-admin-brand-compact { display: flex; align-items: center; justify-content: center; width: 100%; }
-.primkop-admin-brand-compact img { width: 32px; height: 38px; object-fit: contain; }
-.fi-sidebar-nav { padding: 12px 16px; gap: 12px; scrollbar-width: thin; scrollbar-color: #86B23966 #0E3B2B; }
+.primkop-admin-brand img { width: 32px; height: 32px; object-fit: contain; }
+.primkop-admin-brand-compact { display: flex; flex: 0 0 100%; align-items: center; justify-content: center; width: 100%; min-width: 0; height: 100%; overflow: hidden; }
+.primkop-admin-brand-compact img { display: block; width: 28px; height: 28px; max-width: 100%; max-height: 100%; object-fit: contain; }
+.fi-sidebar-nav { padding: 8px 12px; gap: 8px; scrollbar-width: thin; scrollbar-color: #86B23966 #0E3B2B; scrollbar-gutter: auto; }
 .fi-sidebar-nav::-webkit-scrollbar { width: 5px; }
 .fi-sidebar-nav::-webkit-scrollbar-track { background: #0E3B2B; }
 .fi-sidebar-nav::-webkit-scrollbar-thumb { background: #86B23966; border-radius: 8px; }
-.fi-sidebar-nav-groups { gap: 12px; margin-inline: 0; }
-.fi-sidebar-group { gap: 3px; }
-.fi-sidebar-group-btn { padding: 3px 10px; }
-.fi-sidebar-group-label { color: #F3F6EE99; font-size: 10px; line-height: 18px; font-weight: 600; letter-spacing: .09em; text-transform: uppercase; }
-.fi-sidebar-group-items { gap: 3px; }
-.fi-sidebar-item-btn { min-height: 36px; padding: 6px 10px; gap: 10px; }
-.fi-sidebar-item-label { font-size: 13px; line-height: 22px; }
+.fi-sidebar-nav-groups { gap: 8px; margin-inline: 0; }
+.fi-sidebar-group { gap: 2px; }
+.fi-sidebar-group-btn { min-height: 16px; padding: 1px 8px; }
+.fi-sidebar-group-label { color: #F3F6EE99; font-size: 10px; line-height: 14px; font-weight: 600; letter-spacing: .09em; text-transform: uppercase; }
+.fi-sidebar-group-items { gap: 2px; }
+.fi-sidebar-item-btn { min-height: 38px; padding: 7px 10px; gap: 8px; }
+.fi-sidebar-item-label { font-size: 13px; line-height: 20px; }
 .fi-sidebar-item-icon { width: 19px; height: 19px; }
-.primkop-sidebar-toggle { display: grid; place-items: center; width: 40px; height: 40px; border-radius: 10px; color: #0E3B2B; cursor: pointer; }
+.primkop-sidebar-toggle { display: grid; place-items: center; width: 36px; height: 36px; border-radius: 10px; color: #0E3B2B; cursor: pointer; }
 .primkop-sidebar-toggle:hover { background: #E9F0E0; }
 .primkop-sidebar-toggle:focus-visible { outline: 2px solid #86B239; outline-offset: 2px; }
 .primkop-admin-topbar .fi-topbar-end { min-width: 0; gap: 16px; }
 .primkop-admin-topbar .fi-global-search-ctn { min-width: 0; }
-.fi-wi-stats-overview .fi-section-content { display: flex; flex-wrap: wrap; gap: 16px; }
-.fi-wi-stats-overview .fi-section-content > .fi-sc-component { flex: 1 1 180px; min-width: 0; }
-.fi-wi-stats-overview-stat { padding: 18px; transition: background-color 150ms ease; }
+.fi-wi-stats-overview .fi-section-content { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 16px; }
+.fi-wi-stats-overview .fi-section-content > .fi-sc-component { min-width: 0; }
+.fi-wi-stats-overview-stat { min-height: 0; padding: 12px; transition: background-color 150ms ease; }
+.fi-wi-stats-overview-stat-content { gap: 4px; }
+.fi-wi-stats-overview-stat-label { font-size: .75rem; line-height: 1.25; }
 .fi-wi-stats-overview-stat:hover { background: #F3F6EE; }
-.fi-wi-stats-overview-stat-value { font-size: clamp(1.35rem, 2vw, 1.85rem); overflow-wrap: anywhere; }
+.fi-wi-stats-overview-stat-value { font-size: clamp(.95rem, 1.45vw, 1.35rem); line-height: 1.15; white-space: nowrap; overflow-wrap: normal; letter-spacing: -.025em; }
+.fi-wi-stats-overview-stat-description { display: -webkit-box; overflow: hidden; -webkit-box-orient: vertical; -webkit-line-clamp: 2; font-size: .68rem; line-height: 1.3; }
 .primkop-action-lists { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px; }
 .primkop-action-lists section { min-width: 0; }
 .primkop-action-lists h3 { color: #0E3B2B; font-weight: 600; font-size: 14px; margin-bottom: 8px; }
@@ -72,8 +77,25 @@
 @media (max-width: 63.99rem) {
     .primkop-action-lists { grid-template-columns: minmax(0, 1fr); gap: 20px; }
 }
+@media (max-width: 79.99rem) {
+    .fi-wi-stats-overview .fi-section-content { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+@media (max-width: 39.99rem) {
+    .fi-wi-stats-overview .fi-section-content { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
 @media (max-width: 39.99rem) {
     .primkop-admin-topbar .fi-topbar-end { gap: 8px; }
+}
+@media (min-width: 64rem) {
+    .fi-body-has-sidebar-collapsible-on-desktop .fi-sidebar:not(.fi-sidebar-open) .fi-sidebar-header {
+        justify-content: center;
+        overflow: hidden;
+        padding-inline: 0;
+    }
+
+    .fi-body-has-sidebar-collapsible-on-desktop .fi-sidebar:not(.fi-sidebar-open) .fi-sidebar-header-logo-ctn {
+        display: none;
+    }
 }
 @media (prefers-reduced-motion: reduce) {
     .fi-wi-stats-overview-stat { transition: none; }

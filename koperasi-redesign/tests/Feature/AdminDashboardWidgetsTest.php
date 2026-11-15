@@ -9,6 +9,7 @@ use App\Filament\Resources\Anggotas\Pages\ListAnggotas;
 use App\Filament\Resources\Pesanans\Pages\ListPesanans;
 use App\Filament\Resources\Pinjamans\Pages\ListPinjamans;
 use App\Filament\Widgets\AdminActions;
+use App\Filament\Widgets\AdminChart;
 use App\Filament\Widgets\AdminStats;
 use App\Filament\Widgets\LoanStatusChart;
 use App\Filament\Widgets\OrdersChart;
@@ -154,8 +155,8 @@ class AdminDashboardWidgetsTest extends TestCase
         $this->loan($member, 'diajukan');
         DB::enableQueryLog();
         DB::flushQueryLog();
-        $savings = app(AdminOverview::class)->monthlySavings();
-        $orders = app(AdminOverview::class)->monthlyOrders();
+        $savings = app(AdminOverview::class)->monthlySavings(2026);
+        $orders = app(AdminOverview::class)->monthlyOrders(2026);
         $statuses = app(AdminOverview::class)->loanStatuses();
         $queries = DB::getQueryLog();
         DB::disableQueryLog();
@@ -163,24 +164,70 @@ class AdminDashboardWidgetsTest extends TestCase
         foreach ($queries as $query) {
             $this->assertStringContainsString('group by', strtolower($query['query']));
         }
+        $this->assertSame([2026, 2025], app(AdminOverview::class)->savingsYears());
+        $this->assertSame([2026, 2025], app(AdminOverview::class)->orderYears());
         $this->assertCount(12, $savings['labels']);
-        $this->assertSame('Des 2025', $savings['labels'][0]);
-        $this->assertSame('Nov 2026', $savings['labels'][11]);
-        $this->assertSame([100, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 200], $savings['setor']);
-        $this->assertSame([25, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], $savings['tarik']);
-        $this->assertSame([1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2], $orders['counts']);
+        $this->assertSame('Jan', $savings['labels'][0]);
+        $this->assertSame('Des', $savings['labels'][11]);
+        $this->assertSame([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1088, 777], $savings['setor']);
+        $this->assertSame(array_fill(0, 12, 0), $savings['tarik']);
+        $this->assertSame([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 0], $orders['counts']);
         $this->assertSame([1, 0, 0, 2, 0], $statuses['counts']);
         $this->assertSame($savings['setor'], (new \ReflectionMethod(SavingsChart::class, 'getData'))->invoke(Livewire::test(SavingsChart::class)->instance())['datasets'][0]['data']);
         $this->assertSame($orders['counts'], (new \ReflectionMethod(OrdersChart::class, 'getData'))->invoke(Livewire::test(OrdersChart::class)->instance())['datasets'][0]['data']);
         $this->assertSame($statuses['counts'], (new \ReflectionMethod(LoanStatusChart::class, 'getData'))->invoke(Livewire::test(LoanStatusChart::class)->instance())['datasets'][0]['data']);
     }
 
+    public function test_year_filters_default_to_latest_data_and_only_show_the_selected_year(): void
+    {
+        $member = Anggota::factory()->create();
+        $member->simpananTransaksis()->create(['jenis' => 'sukarela', 'tipe' => 'setor', 'nominal' => 80, 'tanggal' => '2023-12-19', 'sumber' => 'manual']);
+        $member->simpananTransaksis()->create(['jenis' => 'wajib', 'tipe' => 'setor', 'nominal' => 120, 'tanggal' => '2025-01-03', 'sumber' => 'manual']);
+        $this->order($member, 'baru', '2023-12-25 10:00:00');
+        $this->order($member, 'baru', '2025-01-10 10:00:00');
+
+        $savingsChart = Livewire::test(SavingsChart::class)->assertSee('2025')->assertSee('2023');
+        $this->assertSame('2025', $savingsChart->instance()->filter);
+        $savingsChartData = (new \ReflectionMethod(SavingsChart::class, 'getData'))->invoke($savingsChart->instance());
+        $this->assertSame([120, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], $savingsChartData['datasets'][0]['data']);
+        $savingsChart->set('filter', '2023');
+        $savingsChartData = (new \ReflectionMethod(SavingsChart::class, 'getData'))->invoke($savingsChart->instance());
+        $this->assertSame([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 80], $savingsChartData['datasets'][0]['data']);
+        $savingsChart->set('filter', '2040')->assertSee('Belum ada data pada periode ini');
+
+        $ordersChart = Livewire::test(OrdersChart::class)->assertSee('2025')->assertSee('2023');
+        $this->assertSame('2025', $ordersChart->instance()->filter);
+        $ordersChartData = (new \ReflectionMethod(OrdersChart::class, 'getData'))->invoke($ordersChart->instance());
+        $this->assertSame([1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], $ordersChartData['datasets'][0]['data']);
+        $ordersChart->set('filter', '2023');
+        $ordersChartData = (new \ReflectionMethod(OrdersChart::class, 'getData'))->invoke($ordersChart->instance());
+        $this->assertSame([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1], $ordersChartData['datasets'][0]['data']);
+        $ordersChart->set('filter', '2040')->assertSee('Belum ada data pada periode ini');
+    }
+
+    public function test_all_chart_widgets_use_object_animation_options(): void
+    {
+        $animationMethod = new \ReflectionMethod(AdminChart::class, 'getAnimationOptions');
+
+        foreach ([SavingsChart::class, OrdersChart::class, LoanStatusChart::class] as $widget) {
+            $component = Livewire::test($widget)->instance();
+            $animation = $animationMethod->invoke($component);
+            $options = (new \ReflectionMethod($widget, 'getOptions'))->invoke($component)->toHtml();
+
+            $this->assertIsArray($animation);
+            $this->assertSame(0, $animation['duration']);
+            $this->assertSame(1, preg_match('/animation:\s*\{\s*duration:\s*(\d+)\s*\}/', $options, $matches));
+            $this->assertSame($animation['duration'], (int) $matches[1]);
+        }
+    }
+
     public function test_empty_action_lists_and_charts_and_member_access_are_safe(): void
     {
         Livewire::test(AdminActions::class)->assertSee('Tidak ada yang perlu diproses');
-        foreach ([SavingsChart::class, OrdersChart::class, LoanStatusChart::class] as $widget) {
-            Livewire::test($widget)->assertSuccessful();
+        foreach ([SavingsChart::class, OrdersChart::class] as $widget) {
+            Livewire::test($widget)->assertSee('Belum ada data pada periode ini');
         }
+        Livewire::test(LoanStatusChart::class)->assertSuccessful();
         $this->actingAs(User::factory()->create(['role' => 'anggota', 'must_change_password' => false]));
         $this->get('/admin')->assertForbidden();
         foreach ([AdminStats::class, AdminActions::class, SavingsChart::class, OrdersChart::class, LoanStatusChart::class] as $widget) {

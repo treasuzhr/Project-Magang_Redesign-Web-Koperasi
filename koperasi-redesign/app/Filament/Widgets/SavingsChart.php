@@ -10,9 +10,16 @@ class SavingsChart extends AdminChart
 
     protected ?string $heading = 'Simpanan per bulan';
 
-    protected ?string $description = 'Setor dan tarik selama 12 bulan terakhir';
+    protected ?string $description = 'Setor dan tarik per bulan pada tahun terpilih';
 
     protected bool $currencyAxis = true;
+
+    protected ?string $emptyStateHeading = 'Belum ada data pada periode ini';
+
+    protected function getFilters(): ?array
+    {
+        return $this->yearFilters(app(AdminOverview::class)->savingsYears());
+    }
 
     protected function getType(): string
     {
@@ -21,7 +28,17 @@ class SavingsChart extends AdminChart
 
     protected function getData(): array
     {
-        $series = app(AdminOverview::class)->monthlySavings();
+        $year = $this->selectedYear();
+
+        if ($year === null) {
+            return [];
+        }
+
+        $series = app(AdminOverview::class)->monthlySavings($year);
+
+        if (! $series['hasData']) {
+            return [];
+        }
 
         return ['labels' => $series['labels'], 'datasets' => [
             ['label' => 'Setor', 'data' => $series['setor'], 'backgroundColor' => '#4C7A10', 'borderRadius' => 4],

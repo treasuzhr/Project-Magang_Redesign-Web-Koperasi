@@ -25,6 +25,8 @@ class LoanStatusChart extends AdminChart
 
     protected function getOptions(): RawJs
     {
-        return RawJs::make("{locale: 'id-ID', animation: false, maintainAspectRatio: false, cutout: '68%', plugins: {legend: {position: 'bottom'}, tooltip: {callbacks: {label: (context) => context.label + ': ' + new Intl.NumberFormat('id-ID').format(context.parsed) + ' pinjaman'}}}}");
+        $animationDuration = $this->getAnimationOptions()['duration'];
+
+        return RawJs::make("{locale: 'id-ID', animation: {duration: {$animationDuration}}, maintainAspectRatio: false, cutout: '68%', plugins: {legend: {position: 'bottom'}, tooltip: {callbacks: {label: (context) => context.label + ': ' + new Intl.NumberFormat('id-ID').format(context.parsed) + ' pinjaman'}}}}");
     }
 }
