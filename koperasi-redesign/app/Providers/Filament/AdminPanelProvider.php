@@ -2,6 +2,7 @@
 
 namespace App\Providers\Filament;
 
+use App\Filament\AdminTopbar;
 use App\Filament\Pages\AkunSaya;
 use App\Filament\Pages\Dashboard;
 use App\Filament\Resources\Anggotas\AnggotaResource;
@@ -24,11 +25,13 @@ use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
 use Filament\Http\Middleware\DispatchServingFilamentEvent;
 use Filament\Navigation\NavigationBuilder;
+use Filament\Navigation\NavigationGroup;
 use Filament\Navigation\NavigationItem;
 use Filament\Panel;
 use Filament\PanelProvider;
 use Filament\Support\Colors\Color;
 use Filament\Support\Icons\Heroicon;
+use Filament\View\PanelsRenderHook;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
 use Illuminate\Cookie\Middleware\EncryptCookies;
 use Illuminate\Foundation\Http\Middleware\PreventRequestForgery;
@@ -57,18 +60,27 @@ class AdminPanelProvider extends PanelProvider
             ->darkMode(false)
             ->font('Figtree')
             ->sidebarCollapsibleOnDesktop()
-            ->navigation(fn (NavigationBuilder $builder): NavigationBuilder => $builder->items([
-                ...array_map(fn (NavigationItem $item): NavigationItem => $item->icon(Heroicon::OutlinedHome), Dashboard::getNavigationItems()),
-                ...(AkunSaya::canAccess() ? AkunSaya::getNavigationItems() : []),
-                ...(AnggotaResource::canAccess() ? array_map(fn (NavigationItem $item): NavigationItem => $item->icon(Heroicon::OutlinedUsers), AnggotaResource::getNavigationItems()) : []),
-                ...(PinjamanResource::canAccess() ? PinjamanResource::getNavigationItems() : []),
-                ...(PesananResource::canAccess() ? PesananResource::getNavigationItems() : []),
-                ...(ProdukResource::canAccess() ? ProdukResource::getNavigationItems() : []),
-                ...(KategoriResource::canAccess() ? KategoriResource::getNavigationItems() : []),
-                ...(DokumenResource::canAccess() ? DokumenResource::getNavigationItems() : []),
-                ...(BeritaResource::canAccess() ? BeritaResource::getNavigationItems() : []),
-                ...(SimpananTransaksiResource::canAccess() ? SimpananTransaksiResource::getNavigationItems() : []),
-                ...(ShuPeriodeResource::canAccess() ? ShuPeriodeResource::getNavigationItems() : []),
+            ->sidebarWidth('16rem')
+            ->collapsedSidebarWidth('4.5rem')
+            ->topbarLivewireComponent(AdminTopbar::class)
+            ->renderHook(PanelsRenderHook::SIDEBAR_LOGO_AFTER, fn () => view('filament.admin.brand-compact'))
+            ->navigation(fn (NavigationBuilder $builder): NavigationBuilder => $builder->groups([
+                NavigationGroup::make('Utama')->collapsible(false)->items(Dashboard::getNavigationItems()),
+                NavigationGroup::make('Keuangan')->collapsible(false)->items([
+                    ...(AnggotaResource::canAccess() ? array_map(fn (NavigationItem $item): NavigationItem => $item->icon(Heroicon::OutlinedUsers), AnggotaResource::getNavigationItems()) : []),
+                    ...(SimpananTransaksiResource::canAccess() ? SimpananTransaksiResource::getNavigationItems() : []),
+                    ...(PinjamanResource::canAccess() ? PinjamanResource::getNavigationItems() : []),
+                    ...(ShuPeriodeResource::canAccess() ? ShuPeriodeResource::getNavigationItems() : []),
+                ]),
+                NavigationGroup::make('Toko')->collapsible(false)->items([
+                    ...(PesananResource::canAccess() ? PesananResource::getNavigationItems() : []),
+                    ...(ProdukResource::canAccess() ? ProdukResource::getNavigationItems() : []),
+                    ...(KategoriResource::canAccess() ? KategoriResource::getNavigationItems() : []),
+                ]),
+                NavigationGroup::make('Konten')->collapsible(false)->items([
+                    ...(BeritaResource::canAccess() ? BeritaResource::getNavigationItems() : []),
+                    ...(DokumenResource::canAccess() ? DokumenResource::getNavigationItems() : []),
+                ]),
             ]))
             ->viteTheme('resources/css/filament/admin/theme.css')
             ->userMenuItems(['akun-saya' => Action::make('akun-saya')->label('Akun saya')->icon(Heroicon::OutlinedKey)->url(fn (): string => AkunSaya::getUrl()), 'logout' => fn (Action $action) => $action->label('Keluar')])

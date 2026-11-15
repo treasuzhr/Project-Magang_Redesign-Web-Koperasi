@@ -1,1 +1,1 @@
-<span class="primkop-admin-brand"><img src="{{ asset('assets/images/logo/Logo PRIMKOP.png') }}" alt="PRIMKOP"><span>Primkop Admin</span></span>
+<span class="primkop-admin-brand"><img src="{{ asset('favicon.svg') }}" alt=""><span>Primkop Admin</span></span>

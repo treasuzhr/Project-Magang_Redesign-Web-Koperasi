@@ -1,0 +1,1 @@
+<a href="{{ \App\Filament\Pages\Dashboard::getUrl() }}" aria-label="Primkop Admin" x-show="! $store.sidebar.isOpen" x-cloak class="primkop-admin-brand-compact"><img src="{{ asset('favicon.svg') }}" alt=""></a>
