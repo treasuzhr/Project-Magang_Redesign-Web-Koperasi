@@ -14,6 +14,7 @@
             'Status' => $loan['status'],
             'Tanggal pengajuan' => \Illuminate\Support\Carbon::parse($loan['date'])->locale('id')->translatedFormat('j F Y'),
             'Tanggal disetujui' => $loan['approved_date'],
+            ...(!empty($loan['disbursed_date']) ? ['Dicairkan pada' => $loan['disbursed_date']] : []),
             'Total sudah dibayar' => $rupiah($loan['paid_total']),
             'Sisa pokok' => $rupiah($loan['remaining']),
             'Sisa angsuran' => $loan['remaining_installments'].' angsuran',

@@ -10,6 +10,12 @@ class NewsPageTest extends TestCase
 {
     use RefreshDatabase;
 
+    protected function setUp(): void
+    {
+        parent::setUp();
+        $this->seedNewsArticles(config('news.articles'));
+    }
+
     public function test_news_page_renders_the_featured_story_and_expected_articles(): void
     {
         $response = $this->get('/berita');
@@ -40,6 +46,7 @@ class NewsPageTest extends TestCase
         $articles = config('news.articles');
         $articles[2]['datetime'] = '2026-03-01';
         config(['news.articles' => [...$articles, $articles[2]]]);
+        $this->seedNewsArticles(config('news.articles'));
         $html = $this->get('/berita')->assertOk()->getContent();
         $this->assertMatchesRegularExpression('/id="news-feature-title"[^>]*>Rumah Kesejahteraan dan Gotong Royong<\/h1>/', $html);
         $this->assertSame(1, substr_count($html, 'data-news-slug="rumah-kesejahteraan-dan-gotong-royong"'));
@@ -52,6 +59,7 @@ class NewsPageTest extends TestCase
         $article['excerpt'] = 'Potongan manual...';
         $article['sections'] = [['paragraphs' => [str_repeat('Koperasi anggota ', 15).'. Kalimat berikutnya.']]];
         config(['news.articles' => [$article]]);
+        $this->seedNewsArticles(config('news.articles'));
         $response = $this->get('/berita')->assertOk();
         $summary = $response->viewData('featured')['summary'];
         $this->assertLessThanOrEqual(160, mb_strlen($summary));
@@ -69,6 +77,7 @@ class NewsPageTest extends TestCase
             $articles[] = array_merge($base, ['slug' => 'article-'.$index, 'datetime' => sprintf('2026-03-%02d', $index)]);
         }
         config(['news.articles' => $articles]);
+        $this->seedNewsArticles(config('news.articles'));
         $first = $this->get('/berita')->assertOk()->assertSee('news-pagination', false)->getContent();
         $second = $this->get('/berita?page=2')->assertOk()->getContent();
         $this->assertSame(8, substr_count($first, 'class="news-card"'));
@@ -81,6 +90,7 @@ class NewsPageTest extends TestCase
     public function test_empty_news_collection_and_invalid_page_are_handled(): void
     {
         config(['news.articles' => []]);
+        $this->seedNewsArticles(config('news.articles'));
         $this->get('/berita')->assertOk()->assertSee('Belum ada berita.')->assertDontSee('data-news-hero', false);
         $this->from('/berita')->get('/berita?page=0')->assertRedirect('/berita')->assertSessionHasErrors('page');
     }

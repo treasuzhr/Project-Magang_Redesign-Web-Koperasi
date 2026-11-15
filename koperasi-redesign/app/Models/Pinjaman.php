@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-#[Fillable(['anggota_id', 'pinjaman_jenis_id', 'kode', 'jumlah', 'tenor_bulan', 'bunga_persen_per_bulan', 'metode_bayar', 'status', 'tanggal_pengajuan', 'tanggal_disetujui', 'catatan_admin', 'dokumen_akad_path'])]
+#[Fillable(['anggota_id', 'pinjaman_jenis_id', 'kode', 'jumlah', 'tenor_bulan', 'bunga_persen_per_bulan', 'metode_bayar', 'status', 'tanggal_pengajuan', 'tanggal_disetujui', 'tanggal_pencairan', 'catatan_admin', 'dokumen_akad_path'])]
 class Pinjaman extends Model
 {
     protected $table = 'pinjamans';
@@ -23,7 +23,7 @@ class Pinjaman extends Model
             'tenor_bulan' => 'integer',
             'bunga_persen_per_bulan' => 'decimal:4',
             'tanggal_pengajuan' => 'date',
-            'tanggal_disetujui' => 'date',
+            'tanggal_disetujui' => 'date', 'tanggal_pencairan' => 'date',
         ];
     }
 

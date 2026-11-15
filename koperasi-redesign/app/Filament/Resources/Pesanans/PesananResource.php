@@ -77,6 +77,7 @@ class PesananResource extends AdminResource
             TextEntry::make('status')->badge()->color(fn (string $state): string => match ($state) {
                 'baru' => 'warning', 'diproses' => 'info', 'siap' => 'primary', 'selesai' => 'success', 'batal' => 'danger', default => 'gray'
             })->formatStateUsing(fn (string $state): string => static::statusLabel($state)),
+            TextEntry::make('selesai_pada')->label('Selesai pada')->dateTime('d M Y H:i')->visible(fn (Pesanan $record): bool => $record->selesai_pada !== null),
             TextEntry::make('total')->formatStateUsing(fn (mixed $state): string => 'Rp '.number_format((float) $state, 0, ',', '.')), TextEntry::make('catatan')->placeholder('-'),
             RepeatableEntry::make('items')->label('Item pesanan')->schema([
                 TextEntry::make('nama')->label('Nama'), TextEntry::make('harga')->formatStateUsing(fn (mixed $state): string => 'Rp '.number_format((float) $state, 0, ',', '.')),

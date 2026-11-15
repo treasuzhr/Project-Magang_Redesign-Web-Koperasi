@@ -1,8 +1,10 @@
 <?php
 
+use App\DatabaseNewsSource;
 use App\DatabaseProductSource;
 use App\Http\Controllers\AdminLoanDocumentController;
 use App\Http\Controllers\AdminProductTemplateController;
+use App\Http\Controllers\AdminSavingsTemplateController;
 use App\Http\Controllers\AnggotaController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CartController;
@@ -13,32 +15,12 @@ use App\Http\Middleware\RequirePasswordChange;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Route;
-use Illuminate\Support\Str;
 
-$newsArticles = static function (): Collection {
-    return collect(config('news.articles', []))->map(static function (array $article): array {
-        $article['slug'] ??= Str::slug($article['title']);
-        $text = collect($article['sections'] ?? [])->flatMap(static fn (array $section): array => $section['paragraphs'] ?? [])->implode(' ');
-        $text = $text ?: ($article['excerpt'] ?? '');
-        $excerpt = trim($article['excerpt'] ?? '');
-        if (! empty($article['sections']) || $excerpt === '' || preg_match('/(?:\.{3}|…)\s*$/u', $excerpt) || ! preg_match('/[.!?]["\x{201D}\x{2019}]?$/u', $excerpt)) {
-            $source = trim(preg_replace('/\s+/u', ' ', strip_tags($text)));
-            preg_match('/^.*?[.!?](?:\s|$)/u', $source, $sentence);
-            $summary = $sentence[0] ?? $source;
-            $article['summary'] = rtrim(Str::limit(trim($summary), 159, '', preserveWords: true), ' .…').'…';
-        } else {
-            $article['summary'] = $excerpt;
-        }
-        $wordCount = preg_match_all('/[\p{L}\p{N}]+/u', strip_tags($text));
-        $article['reading_minutes'] = max(1, (int) ceil($wordCount / 200));
+$newsArticles = static fn (): Collection => app(DatabaseNewsSource::class)->articles();
 
-        return $article;
-    })->unique('slug')->sortByDesc('datetime')->values();
-};
-
-Route::get('/', function (DatabaseProductSource $source) {
+Route::get('/', function (DatabaseProductSource $source) use ($newsArticles) {
     $categories = $source->categories();
-    $news = config('news.articles');
+    $news = $newsArticles()->all();
 
     return view('welcome', compact('categories', 'news'));
 })->name('home');
@@ -148,3 +130,5 @@ Route::get('/admin/pinjaman/{pinjaman}/akad', AdminLoanDocumentController::class
 
 Route::get('/admin/produk-template.csv', AdminProductTemplateController::class)
     ->middleware(['auth', 'role:admin', RequirePasswordChange::class])->name('admin.produk.template');
+
+Route::get('/admin/simpanan-template.csv', AdminSavingsTemplateController::class)->middleware(['auth', 'role:admin', RequirePasswordChange::class])->name('admin.simpanan.template');

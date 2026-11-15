@@ -87,6 +87,7 @@ class PinjamanResource extends AdminResource
             })->formatStateUsing(fn (string $state): string => ucfirst($state)),
             TextEntry::make('tanggal_pengajuan')->label('Tanggal pengajuan')->formatStateUsing(fn (mixed $state): string => Carbon::parse($state)->locale('id')->translatedFormat('d M Y')),
             TextEntry::make('tanggal_disetujui')->label('Tanggal disetujui')->formatStateUsing(fn (mixed $state): string => Carbon::parse($state)->locale('id')->translatedFormat('d M Y'))->placeholder('-'),
+            TextEntry::make('tanggal_pencairan')->label('Dicairkan pada')->date('d M Y')->visible(fn (Pinjaman $record): bool => $record->tanggal_pencairan !== null),
             TextEntry::make('catatan_admin')->label('Catatan admin')->placeholder('-'),
             TextEntry::make('akad')->label('Dokumen akad')->state(fn (Pinjaman $record): string => app(MemberOverview::class)->privateDocumentPath($record->dokumen_akad_path) ? 'Unduh dokumen akad' : 'Dokumen akad belum tersedia.')
                 ->url(fn (Pinjaman $record): ?string => app(MemberOverview::class)->privateDocumentPath($record->dokumen_akad_path) ? route('admin.pinjaman.akad', $record) : null),

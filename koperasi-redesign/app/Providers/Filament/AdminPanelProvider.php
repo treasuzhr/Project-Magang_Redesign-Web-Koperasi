@@ -2,12 +2,17 @@
 
 namespace App\Providers\Filament;
 
+use App\Filament\Pages\AkunSaya;
 use App\Filament\Pages\Dashboard;
 use App\Filament\Resources\Anggotas\AnggotaResource;
+use App\Filament\Resources\Beritas\BeritaResource;
+use App\Filament\Resources\Dokumens\DokumenResource;
 use App\Filament\Resources\Kategoris\KategoriResource;
 use App\Filament\Resources\Pesanans\PesananResource;
 use App\Filament\Resources\Pinjamans\PinjamanResource;
 use App\Filament\Resources\Produks\ProdukResource;
+use App\Filament\Resources\ShuPeriodes\ShuPeriodeResource;
+use App\Filament\Resources\SimpananTransaksis\SimpananTransaksiResource;
 use App\Filament\Widgets\AdminStats;
 use App\Http\Middleware\RequirePasswordChange;
 use App\Http\Middleware\RequireRole;
@@ -54,14 +59,19 @@ class AdminPanelProvider extends PanelProvider
             ->sidebarCollapsibleOnDesktop()
             ->navigation(fn (NavigationBuilder $builder): NavigationBuilder => $builder->items([
                 ...array_map(fn (NavigationItem $item): NavigationItem => $item->icon(Heroicon::OutlinedHome), Dashboard::getNavigationItems()),
+                ...(AkunSaya::canAccess() ? AkunSaya::getNavigationItems() : []),
                 ...(AnggotaResource::canAccess() ? array_map(fn (NavigationItem $item): NavigationItem => $item->icon(Heroicon::OutlinedUsers), AnggotaResource::getNavigationItems()) : []),
                 ...(PinjamanResource::canAccess() ? PinjamanResource::getNavigationItems() : []),
                 ...(PesananResource::canAccess() ? PesananResource::getNavigationItems() : []),
                 ...(ProdukResource::canAccess() ? ProdukResource::getNavigationItems() : []),
                 ...(KategoriResource::canAccess() ? KategoriResource::getNavigationItems() : []),
+                ...(DokumenResource::canAccess() ? DokumenResource::getNavigationItems() : []),
+                ...(BeritaResource::canAccess() ? BeritaResource::getNavigationItems() : []),
+                ...(SimpananTransaksiResource::canAccess() ? SimpananTransaksiResource::getNavigationItems() : []),
+                ...(ShuPeriodeResource::canAccess() ? ShuPeriodeResource::getNavigationItems() : []),
             ]))
             ->viteTheme('resources/css/filament/admin/theme.css')
-            ->userMenuItems(['logout' => fn (Action $action) => $action->label('Keluar')])
+            ->userMenuItems(['akun-saya' => Action::make('akun-saya')->label('Akun saya')->icon(Heroicon::OutlinedKey)->url(fn (): string => AkunSaya::getUrl()), 'logout' => fn (Action $action) => $action->label('Keluar')])
             ->colors([
                 'primary' => Color::hex('#4C7A10'),
             ])

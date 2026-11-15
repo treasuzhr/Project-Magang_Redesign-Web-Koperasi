@@ -25,6 +25,9 @@
             @endif
 
             <x-anggota.info-box>Status: {{ $order['status'] }}</x-anggota.info-box>
+            @if (!empty($order['completed_date']))
+                <x-anggota.info-box>Selesai pada: {{ $order['completed_date'] }}</x-anggota.info-box>
+            @endif
 
             @if ($order['items'] !== [])
                 <section class="member-table-card member-reveal" data-reveal aria-labelledby="order-items-title">

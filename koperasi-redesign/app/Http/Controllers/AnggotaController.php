@@ -441,7 +441,7 @@ class AnggotaController extends Controller
             'columns' => [
                 ['key' => 'number', 'label' => 'No.', 'align' => 'center'],
                 ['key' => 'title', 'label' => 'Judul'],
-                ['key' => 'action', 'label' => 'Dokumen', 'align' => 'center', 'action_label' => 'Unduh PDF', 'action_icon' => 'pdf', 'action_class' => 'member-table-action--document'],
+                ['key' => 'action', 'label' => 'Dokumen', 'align' => 'center', 'action_label' => 'Unduh dokumen', 'action_icon' => 'pdf', 'action_class' => 'member-table-action--document'],
                 ['key' => 'year', 'label' => 'Tahun', 'align' => 'center'],
             ],
         ]);

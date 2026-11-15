@@ -9,6 +9,12 @@ class NewsArticlePageTest extends TestCase
 {
     use RefreshDatabase;
 
+    protected function setUp(): void
+    {
+        parent::setUp();
+        $this->seedNewsArticles(config('news.articles'));
+    }
+
     public function test_layanan_article_displays_the_supplied_content_and_metadata(): void
     {
         $response = $this->get(route('news.show', 'layanan-primkop-pullahta-hankam'));
@@ -58,6 +64,7 @@ class NewsArticlePageTest extends TestCase
         $articles = config('news.articles');
         unset($articles[1]['sections'], $articles[1]['author'], $articles[1]['author_role']);
         config(['news.articles' => $articles]);
+        $this->seedNewsArticles(config('news.articles'));
         $article = $articles[1];
         $this->get('/berita/keanggotaan-manfaat-dan-kewajiban')->assertOk()
             ->assertSee($article['excerpt'])
@@ -103,6 +110,7 @@ class NewsArticlePageTest extends TestCase
         $articles = config('news.articles');
         $articles[0]['sections'][0]['paragraphs'][0] = '<script>alert("test")</script>';
         config(['news.articles' => $articles]);
+        $this->seedNewsArticles(config('news.articles'));
         $this->get('/berita/layanan-primkop-pullahta-hankam')->assertOk()
             ->assertSee('<script>alert("test")</script>')
             ->assertDontSee('<script>alert("test")</script>', false);
@@ -159,6 +167,7 @@ class NewsArticlePageTest extends TestCase
         foreach (['images/berita/photo-missing.jpg', 'https://example.com/photo.jpg', '../.env', 'javascript:alert(1)', 'assets/images/news/keanggotaan-manfaat-kewajiban-2_files/style.css'] as $source) {
             $articles[1]['sections'][0]['image']['src'] = $source;
             config(['news.articles' => $articles]);
+            $this->seedNewsArticles(config('news.articles'));
             $this->get('/berita/keanggotaan-manfaat-dan-kewajiban')->assertOk()
                 ->assertDontSee('data-news-inline-image', false);
         }
@@ -170,6 +179,7 @@ class NewsArticlePageTest extends TestCase
         $articles[1]['sections'][0]['image']['alt'] = '" onerror="alert(1)';
         $articles[1]['sections'][0]['image']['onerror'] = 'alert(1)';
         config(['news.articles' => $articles]);
+        $this->seedNewsArticles(config('news.articles'));
         $this->get('/berita/keanggotaan-manfaat-dan-kewajiban')->assertOk()
             ->assertSee('alt="&quot; onerror=&quot;alert(1)"', false)
             ->assertDontSee(' onerror="alert(1)', false);

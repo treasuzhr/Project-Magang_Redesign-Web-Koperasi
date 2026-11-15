@@ -19,6 +19,7 @@ class ExampleTest extends TestCase
         foreach (config('product_categories') as $category) {
             Kategori::create(['nama' => $category['name'], 'slug' => $category['slug']]);
         }
+        $this->seedNewsArticles(config('news.articles'));
         $response = $this->get('/');
 
         $response->assertOk()

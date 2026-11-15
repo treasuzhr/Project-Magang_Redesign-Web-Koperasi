@@ -196,7 +196,7 @@ class CooperativeDatabaseTest extends TestCase
                     $this->assertGreaterThanOrEqual(1, $share->bulan_aktif);
                     $this->assertLessThanOrEqual(12, $share->bulan_aktif);
                     if ($component->kode === 'belanja') {
-                        $orders = $share->anggota->pesanans()->where('status', 'selesai')->whereYear('tanggal', $period->tahun)->sum('total');
+                        $orders = $share->anggota->pesanans()->where('status', 'selesai')->whereYear('selesai_pada', $period->tahun)->sum('total');
                         $this->assertSame((int) $orders, $share->jumlah_dasar);
                     }
                     if ($component->metode === 'persentase_tetap') {

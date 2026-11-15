@@ -62,9 +62,11 @@ class AdminLoans
             if ($loan->angsurans()->exists()) {
                 throw ValidationException::withMessages(['status' => 'Jadwal angsuran sudah tersedia.']);
             }
-            $schedule = $this->simulator->schedule($loan->jumlah, $loan->tenor_bulan, $loan->bunga_persen_per_bulan, CarbonImmutable::today());
+            $loan->tanggal_pencairan = CarbonImmutable::today();
+            $schedule = $this->simulator->schedule($loan->jumlah, $loan->tenor_bulan, $loan->bunga_persen_per_bulan, $loan->tanggal_pencairan->toImmutable());
             $loan->angsurans()->createMany($schedule);
-            $loan->update(['status' => 'berjalan']);
+            $loan->status = 'berjalan';
+            $loan->save();
         });
 
         return $record->refresh();

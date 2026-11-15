@@ -18,7 +18,7 @@ class AdminOrders
             if (! in_array($target, self::TRANSITIONS[$order->status] ?? [], true)) {
                 throw ValidationException::withMessages(['status' => 'Perubahan status pesanan tidak diizinkan atau status sudah berubah.']);
             }
-            $order->update(['status' => $target]);
+            $order->update(['status' => $target] + ($target === 'selesai' ? ['selesai_pada' => now()] : []));
         });
 
         return $record->refresh();

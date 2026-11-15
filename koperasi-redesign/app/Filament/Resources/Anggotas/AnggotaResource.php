@@ -6,13 +6,19 @@ use App\AdminMemberAccounts;
 use App\Filament\Resources\Anggotas\Pages\CreateAnggota;
 use App\Filament\Resources\Anggotas\Pages\EditAnggota;
 use App\Filament\Resources\Anggotas\Pages\ListAnggotas;
+use App\Filament\Resources\Anggotas\Pages\ViewAnggota;
+use App\Filament\Resources\Anggotas\RelationManagers\SimpananTransaksisRelationManager;
+use App\MemberOverview;
 use App\Models\Anggota;
 use Carbon\Carbon;
 use Filament\Actions\Action;
 use Filament\Actions\EditAction;
+use Filament\Actions\ViewAction;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
+use Filament\Infolists\Components\RepeatableEntry;
+use Filament\Infolists\Components\TextEntry;
 use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
@@ -64,6 +70,7 @@ class AnggotaResource extends Resource
         ])->defaultPaginationPageOption(25)->emptyStateHeading('Belum ada anggota yang sesuai')->defaultSort('nama')->filters([
             SelectFilter::make('status')->label('Status')->options(array_combine(Anggota::STATUSES, array_map('ucfirst', Anggota::STATUSES))),
         ])->recordActions([
+            ViewAction::make()->label('Detail'),
             EditAction::make()->label('Ubah'),
             Action::make('resetPassword')->label('Reset password')->requiresConfirmation()
                 ->modalDescription('Buat password sementara baru. Anggota wajib menggantinya saat mengakses akun.')
@@ -104,8 +111,25 @@ class AnggotaResource extends Resource
         return false;
     }
 
+    public static function infolist(Schema $schema): Schema
+    {
+        return $schema->components([
+            TextEntry::make('nama')->label('Nama'),
+            TextEntry::make('user.nip')->label('NIP/NRP'),
+            RepeatableEntry::make('saldo')->label('Saldo simpanan')->state(fn (Anggota $record): array => collect(app(MemberOverview::class)->savings($record)['summary'])->map(fn (int $saldo, string $jenis): array => ['jenis' => ucfirst($jenis), 'saldo' => $saldo])->values()->all())->schema([
+                TextEntry::make('jenis'),
+                TextEntry::make('saldo')->formatStateUsing(fn (int $state): string => 'Rp '.number_format($state, 0, ',', '.')),
+            ])->columns(2),
+        ]);
+    }
+
+    public static function getRelations(): array
+    {
+        return [SimpananTransaksisRelationManager::class];
+    }
+
     public static function getPages(): array
     {
-        return ['index' => ListAnggotas::route('/'), 'create' => CreateAnggota::route('/create'), 'edit' => EditAnggota::route('/{record}/edit')];
+        return ['index' => ListAnggotas::route('/'), 'create' => CreateAnggota::route('/create'), 'edit' => EditAnggota::route('/{record}/edit'), 'view' => ViewAnggota::route('/{record}')];
     }
 }

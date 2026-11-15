@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\MemberOverview;
 use App\Models\Anggota;
 use App\Models\Angsuran;
 use App\Models\Berita;
@@ -161,6 +162,7 @@ class CooperativeDemoSeeder extends Seeder
             'metode_bayar' => $kind->kode === 'toko' ? 'potong_gaji' : 'tunjangan_kinerja',
             'status' => $status, 'tanggal_pengajuan' => $date,
             'tanggal_disetujui' => $approved ? $date : null,
+            'tanggal_pencairan' => in_array($status, ['berjalan', 'lunas'], true) ? $date : null,
             'catatan_admin' => $status === 'ditolak' ? 'Contoh pengajuan ditolak (data fiktif).' : null,
             // No fictional file path: the akad document has not been supplied.
             'dokumen_akad_path' => null,
@@ -200,6 +202,7 @@ class CooperativeDemoSeeder extends Seeder
                     $order = $member->pesanans()->create([
                         'kode' => 'DEMO-ORD-'.$member->id.'-'.$year.'-'.$state,
                         'status' => $state, 'tanggal' => $date->toDateTimeString(),
+                        'selesai_pada' => $state === 'selesai' ? $date->toDateTimeString() : null,
                         'total' => $product->harga * $qty, 'metode_bayar' => 'potong_gaji',
                         'catatan' => 'Data pesanan fiktif.',
                     ]);
@@ -280,7 +283,7 @@ class CooperativeDemoSeeder extends Seeder
         return match ($code) {
             'simpanan_pokok_wajib' => $member->saldoSimpanan('pokok', $end) + $member->saldoSimpanan('wajib', $end),
             'simpanan_sukarela' => $member->saldoSimpanan('sukarela', $end),
-            'belanja' => (int) $member->pesanans()->where('status', 'selesai')->whereYear('tanggal', $year)->sum('total'),
+            'belanja' => app(MemberOverview::class)->annualSpending($member, $year),
             'jasa_usipa_anggota', 'jasa_usipa_khusus' => (int) Angsuran::whereHas('pinjaman', fn ($query) => $query
                 ->where('anggota_id', $member->id)
                 ->whereHas('jenis', fn ($type) => $type->where('kode', $code === 'jasa_usipa_anggota' ? 'usipa' : 'usipa_khusus')))

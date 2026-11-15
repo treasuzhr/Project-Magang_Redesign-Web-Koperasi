@@ -46,6 +46,12 @@
             </figure>
 
             <div class="news-article__body">
+                @if (isset($article['html']))
+                    {!! app(\App\AdminNews::class)->sanitize($article['html']) !!}
+                    @foreach ($article['inline_images'] ?? [] as $image)
+                        <x-news-inline-image :image="$image" />
+                    @endforeach
+                @else
                 @forelse ($article['sections'] ?? [] as $section)
                     <section @if (! empty($section['heading']))aria-labelledby="article-section-{{ $loop->index }}" @endif>
                         @if (! empty($section['heading']))<h2 id="article-section-{{ $loop->index }}">{{ $section['heading'] }}</h2>@endif
@@ -58,6 +64,7 @@
                     <p>{{ $article['excerpt'] }}</p>
                     <p class="news-article__pending">Isi berita sedang disiapkan.</p>
                 @endforelse
+                @endif
             </div>
 
             <footer class="news-article__footer">

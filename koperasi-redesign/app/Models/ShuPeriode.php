@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-#[Fillable(['tahun', 'status', 'shu_bersih', 'ditetapkan_at'])]
+#[Fillable(['tahun', 'status', 'shu_bersih', 'ditetapkan_at', 'parameter'])]
 class ShuPeriode extends Model
 {
     protected $table = 'shu_periodes';
@@ -17,6 +17,7 @@ class ShuPeriode extends Model
     {
         return [
             'tahun' => 'integer',
+            'parameter' => 'array',
             'shu_bersih' => 'integer',
             'ditetapkan_at' => 'datetime',
         ];

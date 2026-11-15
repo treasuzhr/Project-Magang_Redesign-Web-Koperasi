@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-#[Fillable(['anggota_id', 'kode', 'status', 'total', 'metode_bayar', 'catatan', 'tanggal'])]
+#[Fillable(['anggota_id', 'kode', 'status', 'total', 'metode_bayar', 'catatan', 'tanggal', 'selesai_pada'])]
 class Pesanan extends Model
 {
     protected $table = 'pesanans';
@@ -18,7 +18,7 @@ class Pesanan extends Model
     {
         return [
             'total' => 'integer',
-            'tanggal' => 'datetime',
+            'tanggal' => 'datetime', 'selesai_pada' => 'datetime',
         ];
     }
 

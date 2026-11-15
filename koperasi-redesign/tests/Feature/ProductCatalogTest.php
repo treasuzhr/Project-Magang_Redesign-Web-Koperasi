@@ -46,6 +46,7 @@ class ProductCatalogTest extends TestCase
 
     public function test_homepage_displays_all_nine_categories_in_a_showcase(): void
     {
+        $this->seedNewsArticles(config('news.articles'));
         $response = $this->get('/');
 
         $response->assertOk()

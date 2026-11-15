@@ -17,6 +17,11 @@ use Illuminate\Support\Facades\Storage;
 
 class MemberOverview
 {
+    public function annualSpending(Anggota $anggota, int $year): int
+    {
+        return (int) $anggota->pesanans()->where('status', 'selesai')->whereYear('selesai_pada', $year)->sum('total');
+    }
+
     /** @return array{summary: array<string, int>, total: int} */
     public function savings(Anggota $anggota): array
     {
@@ -126,6 +131,7 @@ class MemberOverview
             'paid_total' => (int) $loan->paid_total, 'remaining_installments' => (int) $loan->unpaid_count,
             'overdue_count' => (int) $loan->overdue_count, 'status' => ucfirst($loan->status),
             'date' => $loan->tanggal_pengajuan->toDateString(),
+            'disbursed_date' => $loan->tanggal_pencairan?->locale('id')->translatedFormat('j F Y'),
             'approved_date' => $loan->tanggal_disetujui?->locale('id')->translatedFormat('j F Y') ?? '-',
             'needs_akad' => $loan->jenis->butuh_dokumen_akad,
             'action_url' => route('anggota.pinjaman.detail', ['id' => $loan->id]),
@@ -224,7 +230,7 @@ class MemberOverview
             ->select('shu_komponens.kode')->selectRaw('SUM(jumlah_dasar) AS base, SUM(shu) AS amount')
             ->groupBy('shu_komponens.kode')->get()->keyBy('kode');
         abort_if($allocations->isEmpty(), 404);
-        $balances = $anggota->simpananTransaksis()->whereIn('jenis', ['pokok', 'wajib'])->where('tanggal', '<=', $year.'-12-31')
+        $balances = $period->parameter['report']['savings_breakdown'][$anggota->id] ?? $anggota->simpananTransaksis()->whereIn('jenis', ['pokok', 'wajib'])->where('tanggal', '<=', $year.'-12-31')
             ->select('jenis')->selectRaw("SUM(CASE WHEN tipe = 'setor' THEN CAST(nominal AS SIGNED) ELSE -CAST(nominal AS SIGNED) END) AS saldo")
             ->groupBy('jenis')->pluck('saldo', 'jenis');
         $rows = [
@@ -277,6 +283,7 @@ class MemberOverview
         ])->all();
 
         return [
+            'completed_date' => $order->selesai_pada?->locale('id')->translatedFormat('j F Y H:i'),
             'id' => $order->id, 'date' => $order->tanggal->locale('id')->translatedFormat('d F Y'),
             'status' => $order->status === 'siap' ? 'Siap diambil' : ucfirst($order->status), 'items' => $items, 'total' => (int) $order->items->sum('subtotal'),
         ];
@@ -300,7 +307,7 @@ class MemberOverview
         return $paginator->through(fn ($document, int $index): array => [
             'id' => $document->id, 'number' => $first + $index, 'title' => $document->judul, 'year' => $document->tahun,
             'action_url' => $this->privateDocumentPath($document->file_path) !== null ? route('anggota.dokumen.download', ['id' => $document->id]) : null,
-            'action_aria_label' => 'Unduh PDF '.$document->judul, 'action_text' => 'Dokumen belum tersedia',
+            'action_aria_label' => 'Unduh dokumen '.$document->judul, 'action_text' => 'Dokumen belum tersedia',
         ]);
     }
 
