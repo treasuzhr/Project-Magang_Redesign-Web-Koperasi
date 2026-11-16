@@ -42,6 +42,13 @@
             font-variant-numeric: tabular-nums;
         }
 
+        .member-documents .member-table-actions {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 8px;
+        }
+
         .member-documents .member-table-action--document {
             min-height: 44px;
             border-color: #b7d19c;

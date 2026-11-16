@@ -12,7 +12,7 @@
                 eyebrow="DOKUMEN"
                 title="Dokumen"
                 accent="koperasi"
-                subtitle="Unduh dokumen koperasi dalam format PDF, DOCX, atau XLSX."
+                subtitle="Lihat PDF atau unduh dokumen koperasi dalam format PDF, DOCX, atau XLSX."
             />
 
             @if (session('status'))

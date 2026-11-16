@@ -31,7 +31,20 @@
                             @endphp
                             <td class="member-table__{{ $align }}" data-column="{{ $key }}" @if ($stackMobile) data-label="{{ $column['label'] }}" @endif>
                                 @if ($key === 'action')
-                                    @if (! empty($row['action_url']))
+                                    @if (! empty($row['action_links']))
+                                        <div class="member-table-actions">
+                                            @foreach ($row['action_links'] as $action)
+                                                <a
+                                                    @class(['member-table-action', $column['action_class'] ?? ''])
+                                                    href="{{ $action['url'] }}"
+                                                    aria-label="{{ $action['aria_label'] }}"
+                                                    @if (! empty($action['target'])) target="{{ $action['target'] }}" rel="{{ $action['rel'] ?? 'noopener' }}" @endif
+                                                >
+                                                    <span>{{ $action['label'] }}</span>
+                                                </a>
+                                            @endforeach
+                                        </div>
+                                    @elseif (! empty($row['action_url']))
                                         <a
                                             @class(['member-table-action', $column['action_class'] ?? ''])
                                             href="{{ $row['action_url'] }}"

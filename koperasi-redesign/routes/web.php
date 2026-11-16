@@ -109,6 +109,9 @@ Route::middleware(['auth', 'role:anggota'])->group(function () {
         ->name('anggota.pesanan.detail');
 
     Route::get('/anggota/dokumen', [AnggotaController::class, 'documentIndex'])->name('anggota.dokumen.index');
+    Route::get('/anggota/dokumen/{id}/lihat', [AnggotaController::class, 'viewDocument'])
+        ->whereNumber('id')
+        ->name('anggota.dokumen.view');
     Route::get('/anggota/dokumen/{id}/unduh', [AnggotaController::class, 'downloadDocument'])
         ->whereNumber('id')
         ->name('anggota.dokumen.download');

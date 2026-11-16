@@ -16,9 +16,12 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
+use Symfony\Component\HttpFoundation\File\File;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class AnggotaController extends Controller
@@ -447,7 +450,7 @@ class AnggotaController extends Controller
         ]);
     }
 
-    public function downloadDocument(MemberOverview $overview, int $id): RedirectResponse|StreamedResponse
+    public function downloadDocument(MemberOverview $overview, int $id): RedirectResponse|BinaryFileResponse
     {
         $document = Dokumen::where('published', true)->findOrFail($id);
         $path = $overview->privateDocumentPath($document->file_path);
@@ -455,7 +458,46 @@ class AnggotaController extends Controller
             return redirect()->route('anggota.dokumen.index')->with('status', 'Dokumen belum tersedia');
         }
 
-        return Storage::disk('local')->download($path, basename($path));
+        return $this->documentFileResponse($path, 'attachment');
+    }
+
+    public function viewDocument(MemberOverview $overview, int $id): BinaryFileResponse
+    {
+        $document = Dokumen::where('published', true)->findOrFail($id);
+        $path = $overview->privateDocumentPath($document->file_path);
+        abort_unless($path !== null && $overview->isPdfDocument($path), 404);
+
+        return $this->documentFileResponse($path, 'inline');
+    }
+
+    private function documentFileResponse(string $path, string $disposition): BinaryFileResponse
+    {
+        $fullPath = Storage::disk('local')->path($path);
+        $filename = $this->safeDownloadFilename($path);
+        $fallback = preg_replace('/[^A-Za-z0-9._-]/', '_', Str::ascii($filename)) ?: 'dokumen';
+        $extension = strtolower(pathinfo($path, PATHINFO_EXTENSION));
+        $contentType = match ($extension) {
+            'pdf' => (new File($fullPath))->getMimeType() ?? 'application/octet-stream',
+            'docx' => 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+            'xlsx' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            default => (new File($fullPath))->getMimeType() ?? 'application/octet-stream',
+        };
+        $response = response()->file($fullPath, [
+            'Content-Type' => $contentType,
+            'X-Content-Type-Options' => 'nosniff',
+        ]);
+        $response->setContentDisposition($disposition, $filename, $fallback);
+
+        return $response;
+    }
+
+    private function safeDownloadFilename(string $path): string
+    {
+        $filename = basename(str_replace('\\', '/', $path));
+        $filename = preg_replace('/[\x00-\x1F\x7F]/', '', $filename) ?? '';
+        $filename = trim($filename, ". \t\n\r\0\x0B");
+
+        return $filename !== '' ? $filename : 'dokumen';
     }
 
     private function orders(): array

@@ -14,6 +14,7 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Symfony\Component\HttpFoundation\File\File;
 
 class MemberOverview
 {
@@ -298,17 +299,52 @@ class MemberOverview
         return Storage::disk('local')->exists($path) ? $path : null;
     }
 
+    public function isPdfDocument(?string $path): bool
+    {
+        $safePath = $this->privateDocumentPath($path);
+
+        if ($safePath === null || strtolower(pathinfo($safePath, PATHINFO_EXTENSION)) !== 'pdf') {
+            return false;
+        }
+
+        return (new File(Storage::disk('local')->path($safePath)))->getMimeType() === 'application/pdf';
+    }
+
     /** @return LengthAwarePaginator<int, array<string, mixed>> */
     public function publishedDocuments(int $perPage = 10): LengthAwarePaginator
     {
         $paginator = Dokumen::where('published', true)->orderByDesc('tahun')->orderByDesc('id')->paginate($perPage)->withQueryString();
         $first = $paginator->firstItem() ?? 0;
 
-        return $paginator->through(fn ($document, int $index): array => [
-            'id' => $document->id, 'number' => $first + $index, 'title' => $document->judul, 'year' => $document->tahun,
-            'action_url' => $this->privateDocumentPath($document->file_path) !== null ? route('anggota.dokumen.download', ['id' => $document->id]) : null,
-            'action_aria_label' => 'Unduh dokumen '.$document->judul, 'action_text' => 'Dokumen belum tersedia',
-        ]);
+        return $paginator->through(function ($document, int $index) use ($first): array {
+            $path = $this->privateDocumentPath($document->file_path);
+            $actions = [];
+
+            if ($path !== null) {
+                if ($this->isPdfDocument($path)) {
+                    $actions[] = [
+                        'url' => route('anggota.dokumen.view', ['id' => $document->id]),
+                        'label' => 'Lihat',
+                        'aria_label' => 'Lihat dokumen '.$document->judul,
+                        'target' => '_blank',
+                        'rel' => 'noopener',
+                    ];
+                }
+
+                $actions[] = [
+                    'url' => route('anggota.dokumen.download', ['id' => $document->id]),
+                    'label' => 'Unduh',
+                    'aria_label' => 'Unduh dokumen '.$document->judul,
+                ];
+            }
+
+            return [
+                'id' => $document->id, 'number' => $first + $index, 'title' => $document->judul, 'year' => $document->tahun,
+                'action_links' => $actions,
+                'action_url' => $path !== null ? route('anggota.dokumen.download', ['id' => $document->id]) : null,
+                'action_aria_label' => 'Unduh dokumen '.$document->judul, 'action_text' => 'Dokumen belum tersedia',
+            ];
+        });
     }
 
     /** @return array<string, mixed> */
