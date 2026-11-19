@@ -62,21 +62,28 @@
 .fi-wi-stats-overview-stat:hover { background: #F3F6EE; }
 .fi-wi-stats-overview-stat-value { font-size: clamp(.95rem, 1.45vw, 1.35rem); line-height: 1.15; white-space: nowrap; overflow-wrap: normal; letter-spacing: -.025em; }
 .fi-wi-stats-overview-stat-description { display: -webkit-box; overflow: hidden; -webkit-box-orient: vertical; -webkit-line-clamp: 2; font-size: .68rem; line-height: 1.3; }
-.primkop-action-lists { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px; }
-.primkop-action-lists section { min-width: 0; }
-.primkop-action-lists h3 { color: #0E3B2B; font-weight: 600; font-size: 14px; margin-bottom: 8px; }
-.primkop-action-lists li + li { border-top: 1px solid #D9E3D2; }
-.primkop-action-lists a { display: flex; align-items: start; justify-content: space-between; gap: 12px; padding: 12px 0; border-radius: 6px; }
-.primkop-action-lists a:hover { color: #4C7A10; }
-.primkop-action-lists a:focus-visible { outline: 2px solid #86B239; outline-offset: 3px; }
-.primkop-action-lists a > span { min-width: 0; }
-.primkop-action-lists strong { display: block; font-size: 13px; font-weight: 600; overflow-wrap: anywhere; }
-.primkop-action-lists small { display: block; color: #56675C; font-size: 11px; line-height: 1.6; overflow-wrap: anywhere; }
-.primkop-action-lists b { flex-shrink: 0; font-size: 12px; font-weight: 600; font-variant-numeric: tabular-nums; }
-.primkop-action-empty { color: #56675C; font-size: 13px; padding: 12px 0; }
-@media (max-width: 63.99rem) {
-    .primkop-action-lists { grid-template-columns: minmax(0, 1fr); gap: 20px; }
-}
+.fi-sidebar.fi-sidebar-open .fi-sidebar-item-label,
+.fi-sidebar.fi-sidebar-open .fi-sidebar-group-label { display: flex !important; visibility: visible; }
+.primkop-action-tabs { display: flex; gap: 8px; overflow-x: auto; border-bottom: 1px solid #D9E3D2; scrollbar-width: thin; }
+.primkop-action-tab { display: inline-flex; flex: 1 0 auto; align-items: center; justify-content: center; gap: 8px; min-height: 42px; padding: 8px 12px; border-bottom: 2px solid transparent; color: #56675C; font-size: 13px; font-weight: 600; white-space: nowrap; cursor: pointer; }
+.primkop-action-tab:hover { color: #0E3B2B; background: #F3F6EE; }
+.primkop-action-tab:focus-visible { outline: 2px solid #86B239; outline-offset: -2px; }
+.primkop-action-tab.is-active { border-bottom-color: #4C7A10; color: #0E3B2B; }
+.primkop-action-tab-count { display: inline-grid; min-width: 22px; height: 22px; place-items: center; padding-inline: 5px; border-radius: 999px; background: #E9F0E0; color: #0E3B2B; font-size: 11px; font-variant-numeric: tabular-nums; }
+.primkop-action-tab.is-active .primkop-action-tab-count { background: #4C7A10; color: #fff; }
+.primkop-action-panel { display: flex; min-height: 22rem; flex-direction: column; padding-top: 4px; }
+.primkop-action-list { flex: 1; }
+.primkop-action-list li + li { border-top: 1px solid #D9E3D2; }
+.primkop-action-list a { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; padding: 10px 0; border-radius: 6px; }
+.primkop-action-list a:hover { color: #4C7A10; }
+.primkop-action-list a:focus-visible, .primkop-action-all:focus-visible { outline: 2px solid #86B239; outline-offset: 3px; }
+.primkop-action-list a > span { min-width: 0; }
+.primkop-action-list strong { display: block; font-size: 13px; font-weight: 600; overflow-wrap: anywhere; }
+.primkop-action-list small { display: block; color: #56675C; font-size: 11px; line-height: 1.6; overflow-wrap: anywhere; }
+.primkop-action-list b { flex-shrink: 0; font-size: 12px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.primkop-action-empty { flex: 1; display: grid; place-items: center; color: #56675C; font-size: 13px; text-align: center; }
+.primkop-action-all { align-self: flex-start; margin-top: 12px; color: #315A25; font-size: 12px; font-weight: 600; }
+.primkop-action-all:hover { color: #4C7A10; text-decoration: underline; }
 @media (max-width: 79.99rem) {
     .fi-wi-stats-overview .fi-section-content { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 }

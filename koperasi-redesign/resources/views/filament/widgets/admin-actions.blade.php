@@ -1,21 +1,75 @@
 <x-filament-widgets::widget>
     <x-filament::section heading="Perlu tindakan">
-        <div class="primkop-action-lists">
-            <section aria-labelledby="admin-pending-loans"><h3 id="admin-pending-loans">Pengajuan pinjaman</h3><ul>
-                @forelse($actions['loans'] as $loan)
-                    <li><a href="{{ \App\Filament\Resources\Pinjamans\PinjamanResource::getUrl('view', ['record'=>$loan]) }}"><span><strong>{{ $loan->anggota->nama }}</strong><small>{{ $loan->kode }} &middot; {{ $loan->tanggal_pengajuan->locale('id')->translatedFormat('d M Y') }}</small></span><b>Rp {{ number_format($loan->jumlah,0,',','.') }}</b></a></li>
-                @empty<li class="primkop-action-empty">Tidak ada yang perlu diproses</li>@endforelse
-            </ul></section>
-            <section aria-labelledby="admin-new-orders"><h3 id="admin-new-orders">Pesanan baru</h3><ul>
-                @forelse($actions['orders'] as $order)
-                    <li><a href="{{ \App\Filament\Resources\Pesanans\PesananResource::getUrl('view', ['record'=>$order]) }}"><span><strong>{{ $order->anggota->nama }}</strong><small>{{ $order->kode }} &middot; {{ $order->tanggal->locale('id')->translatedFormat('d M Y') }}</small></span><b>Rp {{ number_format($order->total,0,',','.') }}</b></a></li>
-                @empty<li class="primkop-action-empty">Tidak ada yang perlu diproses</li>@endforelse
-            </ul></section>
-            <section aria-labelledby="admin-overdue"><h3 id="admin-overdue">Angsuran lewat jatuh tempo</h3><ul>
-                @forelse($actions['installments'] as $installment)
-                    <li><a href="{{ \App\Filament\Resources\Pinjamans\PinjamanResource::getUrl('view', ['record'=>$installment->pinjaman]) }}"><span><strong>{{ $installment->pinjaman->anggota->nama }}</strong><small>{{ $installment->pinjaman->kode }} &middot; Angsuran {{ $installment->angsuran_ke }} &middot; {{ $installment->jatuh_tempo->locale('id')->translatedFormat('d M Y') }}</small></span><b>Rp {{ number_format($installment->total,0,',','.') }}</b></a></li>
-                @empty<li class="primkop-action-empty">Tidak ada yang perlu diproses</li>@endforelse
-            </ul></section>
+        <div
+            class="primkop-action-widget"
+            x-data="{
+                focusTab(direction) {
+                    const tabs = Array.from($el.querySelectorAll('[role=tab]'));
+                    const current = tabs.indexOf(document.activeElement);
+                    const next = tabs[(current + direction + tabs.length) % tabs.length];
+                    next.focus();
+                    next.click();
+                },
+                focusBoundary(last) {
+                    const tabs = Array.from($el.querySelectorAll('[role=tab]'));
+                    const next = last ? tabs[tabs.length - 1] : tabs[0];
+                    next.focus();
+                    next.click();
+                },
+            }"
+        >
+            <div class="primkop-action-tabs" role="tablist" aria-label="Daftar yang perlu tindakan">
+                @foreach ($tabs as $key => $tab)
+                    <button
+                        id="admin-action-tab-{{ $key }}"
+                        type="button"
+                        role="tab"
+                        aria-controls="admin-action-panel"
+                        aria-selected="{{ $activeTab === $key ? 'true' : 'false' }}"
+                        tabindex="{{ $activeTab === $key ? '0' : '-1' }}"
+                        @class(['primkop-action-tab', 'is-active' => $activeTab === $key])
+                        wire:click="selectTab('{{ $key }}')"
+                        @keydown.arrow-right.prevent="focusTab(1)"
+                        @keydown.arrow-left.prevent="focusTab(-1)"
+                        @keydown.home.prevent="focusBoundary(false)"
+                        @keydown.end.prevent="focusBoundary(true)"
+                    >
+                        <span>{{ $tab['label'] }}</span>
+                        <span class="primkop-action-tab-count">{{ number_format($counts[$key], 0, ',', '.') }}</span>
+                    </button>
+                @endforeach
+            </div>
+
+            <div
+                id="admin-action-panel"
+                class="primkop-action-panel"
+                role="tabpanel"
+                aria-labelledby="admin-action-tab-{{ $activeTab }}"
+                aria-live="polite"
+                wire:key="admin-action-panel-{{ $activeTab }}"
+            >
+                @if ($items === [])
+                    <p class="primkop-action-empty">{{ $tabs[$activeTab]['empty'] }}</p>
+                @else
+                    <ul class="primkop-action-list">
+                        @foreach ($items as $item)
+                            <li>
+                                <a href="{{ $item['url'] }}">
+                                    <span>
+                                        <strong>{{ $item['primary'] }}</strong>
+                                        <small>{{ $item['secondary'] }}</small>
+                                    </span>
+                                    <b>Rp {{ number_format($item['amount'], 0, ',', '.') }}</b>
+                                </a>
+                            </li>
+                        @endforeach
+                    </ul>
+                @endif
+
+                <a class="primkop-action-all" href="{{ $tabs[$activeTab]['all_url'] }}">
+                    Lihat semua ({{ number_format($counts[$activeTab], 0, ',', '.') }})
+                </a>
+            </div>
         </div>
     </x-filament::section>
 </x-filament-widgets::widget>

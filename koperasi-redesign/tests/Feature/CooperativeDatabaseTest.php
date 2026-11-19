@@ -90,6 +90,46 @@ class CooperativeDatabaseTest extends TestCase
         $this->travelBack();
     }
 
+    public function test_demo_orders_are_limited_recent_and_spread_across_demo_members_and_years(): void
+    {
+        $this->travelTo(now()->setDate(2026, 11, 13)->setTime(12, 0));
+        $this->seedDemo();
+
+        $expectedCounts = ['baru' => 3, 'diproses' => 2, 'siap' => 2, 'selesai' => 7, 'batal' => 2];
+        foreach ($expectedCounts as $status => $count) {
+            $this->assertSame($count, Pesanan::where('status', $status)->count());
+        }
+        $this->assertSame(16, Pesanan::count());
+
+        $recent = Pesanan::whereIn('status', ['baru', 'diproses', 'siap'])->get();
+        $this->assertCount(7, $recent);
+        foreach ($recent as $order) {
+            $this->assertTrue($order->tanggal->betweenIncluded(now()->subDays(7), now()));
+        }
+
+        foreach (['selesai', 'batal'] as $status) {
+            $orders = Pesanan::where('status', $status)->get();
+            $years = $orders->map(fn (Pesanan $order): string => $order->tanggal->format('Y'))->unique()->sort()->values()->all();
+            $this->assertSame(['2025', '2026'], $years);
+            $this->assertGreaterThan(1, $orders->map(fn (Pesanan $order): string => $order->tanggal->format('Y-m'))->unique()->count());
+        }
+
+        foreach (Pesanan::where('status', 'selesai')->get() as $order) {
+            $this->assertNotNull($order->selesai_pada);
+            $this->assertTrue($order->selesai_pada->gt($order->tanggal));
+        }
+
+        $expectedStatuses = Pesanan::STATUSES;
+        sort($expectedStatuses);
+        foreach ([CooperativeDemoSeeder::ANGGOTA_NIP, CooperativeDemoSeeder::ANGGOTA_KEDUA_NIP] as $nip) {
+            $member = User::where('nip', $nip)->firstOrFail()->anggota;
+            $this->assertSame(
+                $expectedStatuses,
+                $member->pesanans()->pluck('status')->unique()->sort()->values()->all(),
+            );
+        }
+    }
+
     public function test_second_demo_member_cannot_access_first_demo_members_loans_or_orders(): void
     {
         $this->withoutVite();
@@ -222,6 +262,10 @@ class CooperativeDatabaseTest extends TestCase
         $this->seedDemo();
         foreach (Pesanan::with('items.produk')->get() as $order) {
             $this->assertSame((int) $order->items->sum('subtotal'), $order->total);
+            if ($order->status === 'selesai') {
+                $this->assertNotNull($order->selesai_pada);
+                $this->assertTrue($order->selesai_pada->gt($order->tanggal));
+            }
             foreach ($order->items as $item) {
                 $this->assertSame($item->harga * $item->qty, $item->subtotal);
                 $this->assertSame($order->id, $item->pesanan->id);

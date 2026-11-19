@@ -2,13 +2,14 @@
 
 namespace App;
 
+use App\Filament\Resources\Pesanans\PesananResource;
+use App\Filament\Resources\Pinjamans\PinjamanResource;
 use App\Models\Anggota;
 use App\Models\Angsuran;
 use App\Models\Pesanan;
 use App\Models\Pinjaman;
 use App\Models\SimpananTransaksi;
 use Carbon\CarbonImmutable;
-use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 
 class AdminOverview
@@ -25,14 +26,43 @@ class AdminOverview
         ];
     }
 
-    /** @return array<string, Collection> */
-    public function actions(): array
+    /** @return array{loans: int, orders: int, installments: int} */
+    public function actionCounts(): array
     {
         return [
-            'loans' => Pinjaman::query()->with('anggota:id,nama')->where('status', 'diajukan')->orderBy('tanggal_pengajuan')->orderBy('id')->limit(5)->get(),
-            'orders' => Pesanan::query()->with('anggota:id,nama')->where('status', 'baru')->orderBy('tanggal')->orderBy('id')->limit(5)->get(),
-            'installments' => Angsuran::query()->with('pinjaman.anggota:id,nama')->where('status', '!=', 'lunas')->where('jatuh_tempo', '<', today()->toDateString())->orderBy('jatuh_tempo')->orderBy('id')->limit(5)->get(),
+            'loans' => Pinjaman::query()->where('status', 'diajukan')->count(),
+            'orders' => Pesanan::query()->where('status', 'baru')->count(),
+            'installments' => Angsuran::query()->where('status', '!=', 'lunas')->where('jatuh_tempo', '<', today()->toDateString())->count(),
         ];
+    }
+
+    /** @return array<int, array{primary: string, secondary: string, amount: int, url: string}> */
+    public function actionItems(string $tab): array
+    {
+        return match ($tab) {
+            'loans' => Pinjaman::query()->with('anggota:id,nama')->where('status', 'diajukan')->orderBy('tanggal_pengajuan')->orderBy('id')->limit(5)->get()
+                ->map(fn (Pinjaman $loan): array => [
+                    'primary' => $loan->anggota->nama,
+                    'secondary' => $loan->kode.' · '.$loan->tanggal_pengajuan->locale('id')->translatedFormat('d M Y'),
+                    'amount' => (int) $loan->jumlah,
+                    'url' => PinjamanResource::getUrl('view', ['record' => $loan]),
+                ])->all(),
+            'orders' => Pesanan::query()->with('anggota:id,nama')->where('status', 'baru')->orderBy('tanggal')->orderBy('id')->limit(5)->get()
+                ->map(fn (Pesanan $order): array => [
+                    'primary' => $order->anggota->nama,
+                    'secondary' => $order->kode.' · '.$order->tanggal->locale('id')->translatedFormat('d M Y'),
+                    'amount' => (int) $order->total,
+                    'url' => PesananResource::getUrl('view', ['record' => $order]),
+                ])->all(),
+            'installments' => Angsuran::query()->with('pinjaman.anggota:id,nama')->where('status', '!=', 'lunas')->where('jatuh_tempo', '<', today()->toDateString())->orderBy('jatuh_tempo')->orderBy('id')->limit(5)->get()
+                ->map(fn (Angsuran $installment): array => [
+                    'primary' => $installment->pinjaman->anggota->nama,
+                    'secondary' => $installment->pinjaman->kode.' · Angsuran '.$installment->angsuran_ke.' · '.$installment->jatuh_tempo->locale('id')->translatedFormat('d M Y'),
+                    'amount' => (int) $installment->total,
+                    'url' => PinjamanResource::getUrl('view', ['record' => $installment->pinjaman]),
+                ])->all(),
+            default => abort(404),
+        };
     }
 
     /** @return array<int, int> */

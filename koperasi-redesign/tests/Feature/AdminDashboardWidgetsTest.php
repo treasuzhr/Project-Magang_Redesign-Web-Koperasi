@@ -114,7 +114,7 @@ class AdminDashboardWidgetsTest extends TestCase
         }
     }
 
-    public function test_action_lists_limit_five_sort_oldest_and_derive_overdue_without_mutation(): void
+    public function test_action_tabs_show_total_counts_limit_five_rows_and_link_to_filtered_lists(): void
     {
         $member = Anggota::factory()->create();
         $loans = [];
@@ -130,15 +130,59 @@ class AdminDashboardWidgetsTest extends TestCase
         foreach ([['lunas', '2026-01-01'], ['belum', '2026-11-15'], ['tunggak', '2026-12-01']] as $i => [$status,$due]) {
             $running->angsurans()->create(['angsuran_ke' => 8 + $i, 'jatuh_tempo' => $due, 'pokok' => 100, 'bunga' => 10, 'total' => 110, 'status' => $status]);
         }
-        $actions = app(AdminOverview::class)->actions();
-        foreach ($actions as $rows) {
-            $this->assertCount(5, $rows);
-        }
-        $this->assertSame(array_map(fn ($loan) => $loan->id, array_slice(array_reverse($loans), 0, 5)), $actions['loans']->modelKeys());
-        $this->assertSame(array_map(fn ($order) => $order->id, array_slice(array_reverse($orders), 0, 5)), $actions['orders']->modelKeys());
-        $this->assertSame([1, 2, 3, 4, 5], $actions['installments']->pluck('angsuran_ke')->all());
+
+        $this->assertSame(['loans' => 7, 'orders' => 7, 'installments' => 7], app(AdminOverview::class)->actionCounts());
         $this->assertSame(7, $running->angsurans()->where('status', 'belum')->where('jatuh_tempo', '<', today())->count());
-        Livewire::test(AdminActions::class)->assertSee($loans[6]->kode)->assertDontSee($loans[0]->kode)->assertSee('/admin/pinjaman/'.$loans[6]->id, false)->assertSee('/admin/pesanan/'.$orders[6]->id, false);
+
+        $widget = Livewire::test(AdminActions::class);
+        $this->assertSame('loans', $widget->instance()->activeTab);
+        $this->assertSame(['loans' => 7, 'orders' => 7, 'installments' => 7], $widget->instance()->counts);
+        $this->assertCount(5, $widget->instance()->items);
+        $this->assertSame(
+            array_map(fn ($loan) => $loan->kode, array_slice(array_reverse($loans), 0, 5)),
+            array_map(fn ($item) => explode(' · ', $item['secondary'])[0], $widget->instance()->items),
+        );
+        $widget->assertSee($loans[6]->kode)->assertDontSee($loans[0]->kode)
+            ->assertSee('/admin/pinjaman/'.$loans[6]->id, false)
+            ->assertSee('/admin/pinjaman?tab=diajukan', false)
+            ->assertSee('Lihat semua (7)');
+
+        $widget->call('selectTab', 'orders');
+        $this->assertSame('orders', $widget->instance()->activeTab);
+        $this->assertCount(5, $widget->instance()->items);
+        $widget->assertSee($orders[6]->kode)->assertDontSee($loans[6]->kode)
+            ->assertSee('/admin/pesanan/'.$orders[6]->id, false)
+            ->assertSee('/admin/pesanan?tab=baru', false);
+
+        $widget->call('selectTab', 'installments');
+        $this->assertSame('installments', $widget->instance()->activeTab);
+        $this->assertCount(5, $widget->instance()->items);
+        $widget->assertSee('Angsuran 1')->assertSee('/admin/pinjaman/'.$running->id, false)
+            ->assertSee('/admin/pinjaman?tab=berjalan', false);
+
+        $this->get('/admin/pinjaman?tab=diajukan')->assertOk();
+        $this->get('/admin/pesanan?tab=baru')->assertOk();
+        $this->get('/admin/pinjaman?tab=berjalan')->assertOk();
+    }
+
+    public function test_action_tabs_default_to_first_nonempty_tab_and_show_category_empty_states(): void
+    {
+        $member = Anggota::factory()->create();
+        $order = $this->order($member);
+
+        $widget = Livewire::test(AdminActions::class);
+        $this->assertSame('orders', $widget->instance()->activeTab);
+        $this->assertSame(['loans' => 0, 'orders' => 1, 'installments' => 0], $widget->instance()->counts);
+        $widget->call('selectTab', 'loans')->assertSee('Tidak ada pengajuan yang perlu diproses');
+        $widget->call('selectTab', 'installments')->assertSee('Tidak ada angsuran yang lewat jatuh tempo');
+
+        $order->delete();
+        $this->actingAs(User::factory()->create(['name' => 'Admin Kosong', 'role' => 'admin', 'must_change_password' => false]));
+        $empty = Livewire::test(AdminActions::class);
+        $this->assertSame('loans', $empty->instance()->activeTab);
+        $empty->assertSee('Tidak ada pengajuan yang perlu diproses');
+        $empty->call('selectTab', 'orders')->assertSee('Tidak ada pesanan baru');
+        $empty->call('selectTab', 'installments')->assertSee('Tidak ada angsuran yang lewat jatuh tempo');
     }
 
     public function test_charts_aggregate_twelve_calendar_months_and_zero_fill_missing_months(): void
@@ -223,7 +267,7 @@ class AdminDashboardWidgetsTest extends TestCase
 
     public function test_empty_action_lists_and_charts_and_member_access_are_safe(): void
     {
-        Livewire::test(AdminActions::class)->assertSee('Tidak ada yang perlu diproses');
+        Livewire::test(AdminActions::class)->assertSee('Tidak ada pengajuan yang perlu diproses');
         foreach ([SavingsChart::class, OrdersChart::class] as $widget) {
             Livewire::test($widget)->assertSee('Belum ada data pada periode ini');
         }

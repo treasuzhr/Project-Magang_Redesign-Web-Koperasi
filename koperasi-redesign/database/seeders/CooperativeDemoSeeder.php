@@ -190,28 +190,46 @@ class CooperativeDemoSeeder extends Seeder
     private function seedOrders(Collection $members): void
     {
         $products = Produk::orderBy('id')->get();
-        foreach ($members as $index => $member) {
-            for ($year = 2021; $year <= 2025; $year++) {
-                $date = CarbonImmutable::create($year, 8, 20);
-                if (! $this->isMemberOn($member, $date)) {
-                    continue;
-                }
-                foreach (['selesai', 'baru', 'diproses', 'siap', 'batal'] as $state) {
-                    $product = $products[$index % $products->count()];
-                    $qty = 1 + $index % 3;
-                    $order = $member->pesanans()->create([
-                        'kode' => 'DEMO-ORD-'.$member->id.'-'.$year.'-'.$state,
-                        'status' => $state, 'tanggal' => $date->toDateTimeString(),
-                        'selesai_pada' => $state === 'selesai' ? $date->toDateTimeString() : null,
-                        'total' => $product->harga * $qty, 'metode_bayar' => 'potong_gaji',
-                        'catatan' => 'Data pesanan fiktif.',
-                    ]);
-                    $order->items()->create([
-                        'produk_id' => $product->id, 'nama' => $product->nama,
-                        'harga' => $product->harga, 'qty' => $qty, 'subtotal' => $order->total,
-                    ]);
-                }
-            }
+        $now = CarbonImmutable::now();
+        $orders = [
+            [$members[0], 'baru', $now->subDays(1)],
+            [$members[1], 'baru', $now->subDays(2)],
+            [$members[2], 'baru', $now->subDays(3)],
+            [$members[0], 'diproses', $now->subDays(4)],
+            [$members[1], 'diproses', $now->subDays(5)],
+            [$members[0], 'siap', $now->subDays(6)],
+            [$members[1], 'siap', $now->subDays(7)],
+            [$members[0], 'selesai', $now->subMonthsNoOverflow(1)->setDay(10)],
+            [$members[1], 'selesai', $now->subMonthsNoOverflow(3)->setDay(10)],
+            [$members[2], 'selesai', $now->subMonthsNoOverflow(5)->setDay(10)],
+            [$members[3], 'selesai', $now->subMonthsNoOverflow(7)->setDay(10)],
+            [$members[4], 'selesai', $now->subMonthsNoOverflow(13)->setDay(10)],
+            [$members[1], 'selesai', $now->subMonthsNoOverflow(16)->setDay(10)],
+            [$members[2], 'selesai', $now->subMonthsNoOverflow(19)->setDay(10)],
+            [$members[0], 'batal', $now->subMonthsNoOverflow(2)->setDay(10)],
+            [$members[1], 'batal', $now->subMonthsNoOverflow(14)->setDay(10)],
+        ];
+
+        foreach ($orders as $index => [$member, $status, $date]) {
+            $product = $products[$index % $products->count()];
+            $qty = 1 + $index % 3;
+            $total = $product->harga * $qty;
+            $order = $member->pesanans()->create([
+                'kode' => sprintf('DEMO-ORD-%03d-%s', $index + 1, Str::upper($status)),
+                'status' => $status,
+                'tanggal' => $date->toDateTimeString(),
+                'selesai_pada' => $status === 'selesai' ? $date->addDay()->toDateTimeString() : null,
+                'total' => $total,
+                'metode_bayar' => 'potong_gaji',
+                'catatan' => 'Data pesanan fiktif.',
+            ]);
+            $order->items()->create([
+                'produk_id' => $product->id,
+                'nama' => $product->nama,
+                'harga' => $product->harga,
+                'qty' => $qty,
+                'subtotal' => $total,
+            ]);
         }
     }
 
