@@ -73,7 +73,8 @@ class SimpananTransaksiResource extends AdminResource
             SelectFilter::make('jenis')->options(array_combine(SimpananTransaksi::JENIS, array_map('ucfirst', SimpananTransaksi::JENIS))), SelectFilter::make('tipe')->options(['setor' => 'Setor', 'tarik' => 'Tarik']),
             Filter::make('tanggal')->schema([DatePicker::make('dari'), DatePicker::make('sampai')])->query(fn (Builder $query, array $data): Builder => $query->when($data['dari'] ?? null, fn (Builder $q, $date): Builder => $q->whereDate('tanggal', '>=', $date))->when($data['sampai'] ?? null, fn (Builder $q, $date): Builder => $q->whereDate('tanggal', '<=', $date))),
         ])->recordActions([Action::make('correct')->label('Koreksi')->modalDescription('Membuat transaksi lawan dengan jumlah yang sama. Catatan asli tetap disimpan.')->schema([Textarea::make('keterangan')->label('Alasan koreksi')->required()->maxLength(1800)])
-            ->action(fn (SimpananTransaksi $record, array $data, Component $livewire): SimpananTransaksi => static::validateAction($livewire, fn (): SimpananTransaksi => app(AdminSavings::class)->correct($record, $data['keterangan']), 'keterangan'))->successNotificationTitle('Koreksi dicatat')])->defaultSort('tanggal', 'desc')->defaultPaginationPageOption(25)->emptyStateHeading('Belum ada transaksi simpanan yang sesuai');
+            ->action(fn (SimpananTransaksi $record, array $data, Component $livewire): SimpananTransaksi => static::validateAction($livewire, fn (): SimpananTransaksi => app(AdminSavings::class)->correct($record, $data['keterangan']), 'keterangan'))->successNotificationTitle('Koreksi dicatat')])
+            ->recordActionsColumnLabel('Aksi')->recordActionsAlignment('end')->defaultSort('tanggal', 'desc')->defaultPaginationPageOption(25)->emptyStateHeading('Belum ada transaksi simpanan yang sesuai');
     }
 
     public static function getEloquentQuery(): Builder

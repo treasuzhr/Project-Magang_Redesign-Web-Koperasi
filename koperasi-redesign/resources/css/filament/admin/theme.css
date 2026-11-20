@@ -117,3 +117,14 @@
 @media (prefers-reduced-motion: reduce) {
     .fi-wi-stats-overview-stat { transition: none; }
 }
+
+/* Keep row actions compact and aligned without letting labels widen tables. */
+.fi-ta-cell:has(.fi-ta-actions) { width: 1%; white-space: nowrap; }
+.fi-resource-list-records-page.fi-resource-anggota .fi-ta-cell:has(.fi-ta-actions) {
+    width: 10rem;
+    min-width: 10rem;
+    max-width: 10rem;
+    padding-block: 12px;
+    padding-inline: 8px;
+}
+.fi-resource-list-records-page.fi-resource-anggota .fi-ta-header-cell.fi-align-end:last-child { width: 10rem; }

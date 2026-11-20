@@ -8,6 +8,7 @@ use App\Filament\Resources\Beritas\Pages\EditBerita;
 use App\Filament\Resources\Beritas\Pages\ListBeritas;
 use App\Models\Berita;
 use BackedEnum;
+use Filament\Actions\ActionGroup;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\EditAction;
 use Filament\Forms\Components\DateTimePicker;
@@ -71,7 +72,11 @@ class BeritaResource extends AdminResource
                 'Terbit' => 'success','Terjadwal' => 'info',default => 'gray'
             }),
             TextColumn::make('published_at')->label('Tanggal tayang')->dateTime('d M Y H:i')->placeholder('-')->sortable(),
-        ])->recordActions([EditAction::make()->label('Ubah'), DeleteAction::make()->label('Hapus')->authorize(fn (): bool => static::canViewAny())])->defaultSort('published_at', 'desc')->defaultPaginationPageOption(25)->emptyStateHeading('Belum ada berita pada tab ini');
+        ])->recordActions([
+            EditAction::make()->label('Ubah'),
+            ActionGroup::make([DeleteAction::make()->label('Hapus')->authorize(fn (): bool => static::canViewAny())])
+                ->icon(Heroicon::OutlinedEllipsisVertical)->tooltip('Aksi lainnya'),
+        ])->recordActionsColumnLabel('Aksi')->recordActionsAlignment('end')->defaultSort('published_at', 'desc')->defaultPaginationPageOption(25)->emptyStateHeading('Belum ada berita pada tab ini');
     }
 
     public static function getPages(): array

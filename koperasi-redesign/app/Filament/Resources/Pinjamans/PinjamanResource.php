@@ -71,7 +71,8 @@ class PinjamanResource extends AdminResource
         ])->filters([
             SelectFilter::make('status')->options(array_combine(Pinjaman::STATUSES, array_map('ucfirst', Pinjaman::STATUSES))),
             SelectFilter::make('pinjaman_jenis_id')->label('Jenis')->relationship('jenis', 'nama'),
-        ])->recordActions([ViewAction::make()->label('Detail'), ...static::workflowActions()])->defaultPaginationPageOption(25)->emptyStateHeading(fn ($livewire): string => $livewire->activeTab === 'diajukan' ? 'Belum ada pengajuan yang perlu diproses' : 'Tidak ada data pada antrean ini')->defaultSort('tanggal_pengajuan', 'desc');
+        ])->recordActions([ViewAction::make()->label('Detail'), ...static::workflowActions()])
+            ->recordActionsColumnLabel('Aksi')->recordActionsAlignment('end')->defaultPaginationPageOption(25)->emptyStateHeading(fn ($livewire): string => $livewire->activeTab === 'diajukan' ? 'Belum ada pengajuan yang perlu diproses' : 'Tidak ada data pada antrean ini')->defaultSort('tanggal_pengajuan', 'desc');
     }
 
     public static function infolist(Schema $schema): Schema

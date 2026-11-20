@@ -12,6 +12,7 @@ use App\MemberOverview;
 use App\Models\Anggota;
 use Carbon\Carbon;
 use Filament\Actions\Action;
+use Filament\Actions\ActionGroup;
 use Filament\Actions\EditAction;
 use Filament\Actions\ViewAction;
 use Filament\Forms\Components\DatePicker;
@@ -23,6 +24,7 @@ use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Schema;
+use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
@@ -75,11 +77,12 @@ class AnggotaResource extends Resource
     public static function table(Table $table): Table
     {
         return $table->columns([
-            TextColumn::make('nomor_anggota')->label('Nomor anggota')->searchable()->placeholder('-'),
-            TextColumn::make('nama')->label('Nama')->searchable()->sortable(),
-            TextColumn::make('user.nip')->label('NIP/NRP')->searchable(),
+            TextColumn::make('nomor_anggota')->label('Nomor anggota')->searchable()->placeholder('-')->wrap(false),
+            TextColumn::make('nama')->label('Nama')->searchable()->sortable()->wrap(false),
+            TextColumn::make('user.nip')->label('NIP/NRP')->searchable()->wrap(false),
             TextColumn::make('pangkat_golongan')->label('Pangkat / golongan')->toggleable(isToggledHiddenByDefault: true)->placeholder('-'),
             TextColumn::make('tanggal_masuk')->label('Tanggal masuk')->formatStateUsing(fn (mixed $state): string => Carbon::parse($state)->locale('id')->translatedFormat('d M Y'))->sortable(),
+            TextColumn::make('tanggal_keluar')->label('Tanggal keluar')->date('d M Y')->placeholder('-')->sortable()->toggleable(isToggledHiddenByDefault: true),
             TextColumn::make('status')->label('Status')->badge()->formatStateUsing(fn (string $state): string => ucfirst($state))
                 ->color(fn (string $state): string => $state === 'aktif' ? 'success' : 'gray'),
         ])->defaultPaginationPageOption(25)->emptyStateHeading('Belum ada anggota yang sesuai')->defaultSort('nama')->filters([
@@ -87,13 +90,20 @@ class AnggotaResource extends Resource
         ])->recordActions([
             ViewAction::make()->label('Detail'),
             EditAction::make()->label('Ubah'),
-            Action::make('resetPassword')->label('Atur ulang kata sandi')->requiresConfirmation()
-                ->modalDescription('Buat kata sandi sementara baru. Anggota wajib menggantinya saat mengakses akun.')
-                ->action(function (Anggota $record): void {
-                    $password = app(AdminMemberAccounts::class)->resetPassword($record);
-                    Notification::make()->title('Kata sandi sementara: '.$password)->body('Sampaikan kepada anggota secara pribadi. Anggota wajib mengganti kata sandi.')->success()->persistent()->send();
-                }),
-        ])->toolbarActions([]);
+            ActionGroup::make([static::resetPasswordAction()])
+                ->icon(Heroicon::OutlinedEllipsisVertical)
+                ->tooltip('Aksi lainnya'),
+        ])->recordActionsColumnLabel('Aksi')->recordActionsAlignment('end')->toolbarActions([]);
+    }
+
+    public static function resetPasswordAction(): Action
+    {
+        return Action::make('resetPassword')->label('Atur ulang kata sandi')->requiresConfirmation()
+            ->modalDescription('Buat kata sandi sementara baru. Anggota wajib menggantinya saat mengakses akun.')
+            ->action(function (Anggota $record): void {
+                $password = app(AdminMemberAccounts::class)->resetPassword($record);
+                Notification::make()->title('Kata sandi sementara: '.$password)->body('Sampaikan kepada anggota secara pribadi. Anggota wajib mengganti kata sandi.')->success()->persistent()->send();
+            });
     }
 
     public static function getEloquentQuery(): Builder

@@ -12,6 +12,7 @@ use App\Filament\Widgets\AdminStats;
 use App\Models\Anggota;
 use App\Models\User;
 use Database\Seeders\CooperativeDemoSeeder;
+use Filament\Actions\ActionGroup;
 use Filament\Facades\Filament;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
@@ -231,10 +232,23 @@ class AdminPanelTest extends TestCase
         $member = app(AdminMemberAccounts::class)->create($this->data());
         $member->user->update(['must_change_password' => false]);
         $old = $member->user->password;
-        Livewire::test(ListAnggotas::class)->callTableAction('resetPassword', $member)->assertNotified();
+        $table = Livewire::test(ListAnggotas::class);
+        $actions = $table->instance()->getTable()->getRecordActions();
+        $resetGroup = $actions[2];
+        $this->assertInstanceOf(ActionGroup::class, $resetGroup);
+        $this->assertSame('Aksi lainnya', $resetGroup->getTooltip());
+        $this->assertSame('Atur ulang kata sandi', $resetGroup->getActions()[0]->getLabel());
+        $this->assertArrayHasKey('resetPassword', $table->instance()->getTable()->getFlatRecordActions());
+        $table->callTableAction('resetPassword', $member)->assertNotified();
         $member->refresh();
         $this->assertNotSame($old, $member->user->password);
         $this->assertTrue($member->user->must_change_password);
+
+        $edit = Livewire::test(EditAnggota::class, ['record' => $member->id]);
+        $edit->assertSee('Atur ulang kata sandi')->callAction('resetPassword')->assertNotified();
+
+        $this->actingAs($member->user)->get('/admin/anggota/'.$member->id.'/edit')->assertForbidden();
+
         $password = app(AdminMemberAccounts::class)->resetPassword($member);
         $this->assertTrue(Hash::check($password, $member->fresh()->user->password));
     }
@@ -249,6 +263,8 @@ class AdminPanelTest extends TestCase
         $this->assertArrayNotHasKey('password', $columns);
         $this->assertArrayNotHasKey('user.password', $columns);
         $this->assertArrayNotHasKey('password_hash', $columns);
+        $this->assertArrayHasKey('tanggal_keluar', $columns);
+        $this->assertTrue($columns['tanggal_keluar']->isToggledHiddenByDefault());
         $table->assertSee('NIP/NRP')->assertDontSee($one->user->password)->assertDontSee($two->user->password);
         Livewire::test(ListAnggotas::class)->searchTable('TEST-ANGGOTA')->assertCanSeeTableRecords([$one])->assertCanNotSeeTableRecords([$two]);
         Livewire::test(ListAnggotas::class)->searchTable('Orang Kedua')->assertCanSeeTableRecords([$two])->assertCanNotSeeTableRecords([$one]);

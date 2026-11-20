@@ -10,6 +10,7 @@ use App\Filament\Resources\Dokumens\Pages\ListDokumens;
 use App\MemberOverview;
 use App\Models\Dokumen;
 use BackedEnum;
+use Filament\Actions\ActionGroup;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\EditAction;
 use Filament\Forms\Components\FileUpload;
@@ -76,7 +77,11 @@ class DokumenResource extends AdminResource
     {
         return $table->columns([TextColumn::make('judul')->searchable()->wrap(), TextColumn::make('tahun')->sortable(), TextColumn::make('jenis_berkas')->label('Jenis berkas')->state(fn (Dokumen $record): string => app(AdminDocuments::class)->metadata($record)['type']), TextColumn::make('ukuran')->state(fn (Dokumen $record): string => app(AdminDocuments::class)->metadata($record)['size']),
             ToggleColumn::make('published')->label('Terbit')->disabled(fn (): bool => ! static::canViewAny())->updateStateUsing(fn (Dokumen $record, bool $state): bool => app(AdminDocuments::class)->publish($record, $state)), TextColumn::make('created_at')->label('Ditambahkan')->date('d M Y')->sortable(),
-        ])->recordActions([EditAction::make()->label('Ubah'), static::deletionAction()])->defaultSort('tahun', 'desc')->defaultPaginationPageOption(25)->emptyStateHeading('Belum ada dokumen pada tab ini');
+        ])->recordActions([
+            EditAction::make()->label('Ubah'),
+            ActionGroup::make([static::deletionAction()])
+                ->icon(Heroicon::OutlinedEllipsisVertical)->tooltip('Aksi lainnya'),
+        ])->recordActionsColumnLabel('Aksi')->recordActionsAlignment('end')->defaultSort('tahun', 'desc')->defaultPaginationPageOption(25)->emptyStateHeading('Belum ada dokumen pada tab ini');
     }
 
     public static function getPages(): array

@@ -66,7 +66,8 @@ class PesananResource extends AdminResource
             })->formatStateUsing(fn (string $state): string => static::statusLabel($state)),
             TextColumn::make('tanggal')->label('Tanggal')->formatStateUsing(fn (mixed $state): string => Carbon::parse($state)->locale('id')->translatedFormat('d M Y H:i'))->sortable(),
         ])->filters([SelectFilter::make('status')->options(array_combine(Pesanan::STATUSES, array_map(static::statusLabel(...), Pesanan::STATUSES)))])
-            ->recordActions([ViewAction::make()->label('Detail'), ...static::workflowActions()])->defaultPaginationPageOption(25)->emptyStateHeading(fn ($livewire): string => $livewire->activeTab === 'baru' ? 'Belum ada pesanan baru' : 'Tidak ada data pada antrean ini')->defaultSort('tanggal', 'desc');
+            ->recordActions([ViewAction::make()->label('Detail'), ...static::workflowActions()])
+            ->recordActionsColumnLabel('Aksi')->recordActionsAlignment('end')->defaultPaginationPageOption(25)->emptyStateHeading(fn ($livewire): string => $livewire->activeTab === 'baru' ? 'Belum ada pesanan baru' : 'Tidak ada data pada antrean ini')->defaultSort('tanggal', 'desc');
     }
 
     public static function infolist(Schema $schema): Schema

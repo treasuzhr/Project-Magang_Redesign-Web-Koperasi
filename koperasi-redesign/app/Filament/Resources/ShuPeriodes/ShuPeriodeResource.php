@@ -65,7 +65,8 @@ class ShuPeriodeResource extends AdminResource
             TextColumn::make('status')->badge()->formatStateUsing(fn (string $state): string => $state === 'draft' ? 'Draf' : 'Ditetapkan')->color(fn (string $state): string => $state === 'draft' ? 'warning' : 'success'),
             TextColumn::make('shu_bersih')->label('Total terbagi')->placeholder('Belum dihitung')->formatStateUsing(fn ($state): string => 'Rp '.number_format((int) $state, 0, ',', '.'))->alignEnd(),
             TextColumn::make('ditetapkan_at')->label('Tanggal penetapan')->dateTime('d M Y H:i')->placeholder('-'),
-        ])->recordActions([ViewAction::make()->label('Pratinjau'), EditAction::make()->label('Ubah parameter')])->defaultSort('tahun', 'desc')->defaultPaginationPageOption(25)->emptyStateHeading('Belum ada periode SHU');
+        ])->recordActions([ViewAction::make()->label('Pratinjau'), EditAction::make()->label('Ubah')])
+            ->recordActionsColumnLabel('Aksi')->recordActionsAlignment('end')->defaultSort('tahun', 'desc')->defaultPaginationPageOption(25)->emptyStateHeading('Belum ada periode SHU');
     }
 
     public static function getPages(): array

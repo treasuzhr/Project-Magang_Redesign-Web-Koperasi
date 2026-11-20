@@ -39,7 +39,9 @@ class EditAnggota extends EditRecord
 
     protected function getHeaderActions(): array
     {
-        return [];
+        return [
+            AnggotaResource::resetPasswordAction()->record(fn () => $this->getRecord()),
+        ];
     }
 
     protected function mutateFormDataBeforeFill(array $data): array

@@ -11,6 +11,7 @@ use App\Models\Kategori;
 use BackedEnum;
 use Closure;
 use Filament\Actions\Action;
+use Filament\Actions\ActionGroup;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\EditAction;
 use Filament\Forms\Components\Select;
@@ -84,12 +85,16 @@ class KategoriResource extends AdminResource
 
     public static function table(Table $table): Table
     {
-        return $table->columns([TextColumn::make('nama')->label('Nama')->searchable(), TextColumn::make('slug')->label('Slug')->toggleable(isToggledHiddenByDefault: true), TextColumn::make('produks_count')->label('Jumlah produk')])->recordActions([EditAction::make()->label('Ubah'), static::deletionAction(),
-            Action::make('mergeCategory')->label('Gabungkan ke kategori lain')->requiresConfirmation()
+        return $table->columns([TextColumn::make('nama')->label('Nama')->searchable(), TextColumn::make('slug')->label('Slug')->toggleable(isToggledHiddenByDefault: true), TextColumn::make('produks_count')->label('Jumlah produk')])->recordActions([
+            EditAction::make()->label('Ubah'),
+            ActionGroup::make([
+                static::deletionAction(),
+                Action::make('mergeCategory')->label('Gabungkan ke kategori lain')->requiresConfirmation()
                 ->modalDescription(fn (Kategori $record): string => 'Sebanyak '.$record->produks()->count().' produk akan dipindah dan kategori asal dihapus.')
                 ->schema([Select::make('kategori_id')->label('Kategori tujuan')->options(fn (Kategori $record): array => Kategori::query()->whereKeyNot($record->id)->orderBy('nama')->pluck('nama', 'id')->all())->required()->rules(fn (Kategori $record): array => ['exists:kategoris,id', Rule::notIn([$record->id])])])
                 ->action(fn (Kategori $record, array $data): int => app(AdminCatalog::class)->mergeCategory($record, $data['kategori_id']))->successNotificationTitle('Kategori digabungkan'),
-        ])->defaultPaginationPageOption(25)->emptyStateHeading('Belum ada kategori');
+            ])->icon(Heroicon::OutlinedEllipsisVertical)->tooltip('Aksi lainnya'),
+        ])->recordActionsColumnLabel('Aksi')->recordActionsAlignment('end')->defaultPaginationPageOption(25)->emptyStateHeading('Belum ada kategori');
     }
 
     public static function getEloquentQuery(): Builder

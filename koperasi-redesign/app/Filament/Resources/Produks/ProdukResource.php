@@ -11,6 +11,7 @@ use App\Models\Kategori;
 use App\Models\Produk;
 use BackedEnum;
 use Filament\Actions\Action;
+use Filament\Actions\ActionGroup;
 use Filament\Actions\BulkAction;
 use Filament\Actions\EditAction;
 use Filament\Forms\Components\FileUpload;
@@ -76,7 +77,11 @@ class ProdukResource extends AdminResource
             }),
             TextColumn::make('harga')->label('Harga')->alignEnd()->formatStateUsing(fn (mixed $state): string => 'Rp '.number_format((float) $state, 0, ',', '.'))->sortable(),
             ToggleColumn::make('aktif')->label('Aktif')->disabled(fn (): bool => ! static::canViewAny())->updateStateUsing(fn (Produk $record, bool $state): bool => app(AdminCatalog::class)->setActive($record, $state)),
-        ])->filters([SelectFilter::make('kategori_id')->label('Kategori')->relationship('kategori', 'nama'), TernaryFilter::make('aktif')->label('Aktif')->trueLabel('Aktif')->falseLabel('Nonaktif')])->recordActions([EditAction::make()->label('Ubah'), Action::make('delete')->label('Hapus')->color('danger')->disabled()->tooltip('Sudah dipakai di pesanan, nonaktifkan saja')])
+        ])->filters([SelectFilter::make('kategori_id')->label('Kategori')->relationship('kategori', 'nama'), TernaryFilter::make('aktif')->label('Aktif')->trueLabel('Aktif')->falseLabel('Nonaktif')])->recordActions([
+            EditAction::make()->label('Ubah'),
+            ActionGroup::make([Action::make('delete')->label('Hapus')->color('danger')->disabled()->tooltip('Sudah dipakai di pesanan, nonaktifkan saja')])
+                ->icon(Heroicon::OutlinedEllipsisVertical)->tooltip('Aksi lainnya'),
+        ])->recordActionsColumnLabel('Aksi')->recordActionsAlignment('end')
             ->selectCurrentPageOnly(false)->toolbarActions([BulkAction::make('moveCategory')->label('Pindahkan kategori')->schema([
                 Select::make('kategori_id')->label('Kategori tujuan')->options(fn (): array => Kategori::query()->orderBy('nama')->pluck('nama', 'id')->all())->required()->rules(['exists:kategoris,id'])->searchable(),
             ])->action(function (Collection $records, array $data): void {
