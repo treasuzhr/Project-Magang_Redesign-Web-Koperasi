@@ -44,7 +44,7 @@
 
             <div
                 id="admin-action-panel"
-                class="primkop-action-panel"
+                @class(['primkop-action-panel', 'is-empty' => $items === []])
                 role="tabpanel"
                 aria-labelledby="admin-action-tab-{{ $activeTab }}"
                 aria-live="polite"
@@ -68,9 +68,11 @@
                     </ul>
                 @endif
 
-                <a class="primkop-action-all" href="{{ $tabs[$activeTab]['all_url'] }}">
-                    Lihat semua ({{ number_format($counts[$activeTab], 0, ',', '.') }})
-                </a>
+                @if ($counts[$activeTab] > count($items))
+                    <a class="primkop-action-all" href="{{ $tabs[$activeTab]['all_url'] }}">
+                        Lihat semua ({{ number_format($counts[$activeTab], 0, ',', '.') }})
+                    </a>
+                @endif
             </div>
         </x-filament::section>
     </div>

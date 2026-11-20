@@ -173,10 +173,16 @@ class AdminDashboardWidgetsTest extends TestCase
         $widget = Livewire::test(AdminActions::class);
         $this->assertSame('orders', $widget->instance()->activeTab);
         $this->assertSame(['loans' => 0, 'orders' => 1, 'installments' => 0], $widget->instance()->counts);
+        $widget->assertDontSee('Lihat semua (1)');
         $widget->call('selectTab', 'loans')->assertSee('Tidak ada pengajuan yang perlu diproses');
         $widget->call('selectTab', 'installments')->assertSee('Tidak ada angsuran yang lewat jatuh tempo');
 
-        $order->delete();
+        for ($number = 0; $number < 4; $number++) {
+            $this->order($member);
+        }
+        Livewire::test(AdminActions::class)->assertDontSee('Lihat semua');
+
+        $member->pesanans()->delete();
         $this->actingAs(User::factory()->create(['name' => 'Admin Kosong', 'role' => 'admin', 'must_change_password' => false]));
         $empty = Livewire::test(AdminActions::class);
         $this->assertSame('loans', $empty->instance()->activeTab);

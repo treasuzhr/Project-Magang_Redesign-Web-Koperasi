@@ -17,6 +17,7 @@ use App\Filament\Resources\SimpananTransaksis\SimpananTransaksiResource;
 use App\Filament\Widgets\AdminStats;
 use App\Http\Middleware\RequirePasswordChange;
 use App\Http\Middleware\RequireRole;
+use App\Http\Middleware\SetAdminLocale;
 use App\Http\Responses\AdminLogoutResponse;
 use Filament\Actions\Action;
 use Filament\Auth\Http\Responses\Contracts\LogoutResponse;
@@ -96,6 +97,9 @@ class AdminPanelProvider extends PanelProvider
             ->widgets([
                 AdminStats::class,
             ])
+            ->middleware([
+                SetAdminLocale::class,
+            ], isPersistent: true)
             ->middleware([
                 EncryptCookies::class,
                 AddQueuedCookiesToResponse::class,

@@ -21,6 +21,7 @@ use Filament\Infolists\Components\RepeatableEntry;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
+use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Schema;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
@@ -45,15 +46,29 @@ class AnggotaResource extends Resource
         return $schema->components([
             TextInput::make('nomor_anggota')->label('Nomor anggota')->maxLength(255)->unique(ignoreRecord: true),
             TextInput::make('nama')->label('Nama')->required()->maxLength(255),
-            TextInput::make('nip')->label('NIP/NRP')->required()->maxLength(255)
+            TextInput::make('nip')->label('NIP/NRP')->default(null)->autocomplete('off')
+                ->extraInputAttributes(['name' => 'cooperative_member_reference', 'data-form-type' => 'other'])
+                ->required()->maxLength(255)
                 ->unique(table: 'users', column: 'nip', ignorable: fn (?Anggota $record) => $record?->user, ignoreRecord: false)
                 ->validationMessages(['unique' => 'NIP sudah digunakan.']),
-            TextInput::make('password')->label('Password awal')->password()->revealable()->minLength(8)->maxLength(1024)
+            TextInput::make('password')->label('Kata sandi awal')->default(null)->password()->autocomplete('new-password')
+                ->extraInputAttributes(['data-lpignore' => 'true', 'data-1p-ignore' => 'true', 'data-bwignore' => 'true'])
+                ->revealable()->minLength(8)->maxLength(1024)
                 ->required(fn (string $operation): bool => $operation === 'create')->visibleOn('create')->dehydrated(fn (string $operation): bool => $operation === 'create'),
             TextInput::make('pangkat_golongan')->label('Pangkat / golongan')->maxLength(255),
             DatePicker::make('tanggal_masuk')->label('Tanggal masuk')->required(),
-            DatePicker::make('tanggal_keluar')->label('Tanggal keluar')->afterOrEqual('tanggal_masuk'),
-            Select::make('status')->label('Status')->options(array_combine(Anggota::STATUSES, array_map('ucfirst', Anggota::STATUSES)))->default('aktif')->required(),
+            DatePicker::make('tanggal_keluar')->label('Tanggal keluar')
+                ->helperText('Isi jika anggota berhenti (pensiun, pindah, atau mengundurkan diri). Kosongkan jika masih aktif.')
+                ->required(fn (Get $get): bool => $get('status') !== 'aktif')
+                ->afterOrEqual('tanggal_masuk')
+                ->validationMessages([
+                    'after_or_equal' => 'Tanggal keluar tidak boleh lebih awal dari tanggal masuk.',
+                    'required' => 'Tanggal keluar wajib diisi jika status anggota tidak aktif.',
+                ]),
+            Select::make('status')->label('Status')->options(array_combine(Anggota::STATUSES, array_map('ucfirst', Anggota::STATUSES)))
+                ->default('aktif')->required()->live()
+                ->rules(fn (Get $get): array => filled($get('tanggal_keluar')) ? ['not_in:aktif'] : [])
+                ->validationMessages(['not_in' => 'Pilih status nonaktif jika tanggal keluar diisi.']),
         ])->columns(2);
     }
 
@@ -72,11 +87,11 @@ class AnggotaResource extends Resource
         ])->recordActions([
             ViewAction::make()->label('Detail'),
             EditAction::make()->label('Ubah'),
-            Action::make('resetPassword')->label('Reset password')->requiresConfirmation()
-                ->modalDescription('Buat password sementara baru. Anggota wajib menggantinya saat mengakses akun.')
+            Action::make('resetPassword')->label('Atur ulang kata sandi')->requiresConfirmation()
+                ->modalDescription('Buat kata sandi sementara baru. Anggota wajib menggantinya saat mengakses akun.')
                 ->action(function (Anggota $record): void {
                     $password = app(AdminMemberAccounts::class)->resetPassword($record);
-                    Notification::make()->title('Password sementara: '.$password)->body('Sampaikan kepada anggota secara pribadi. Anggota wajib mengganti password.')->success()->persistent()->send();
+                    Notification::make()->title('Kata sandi sementara: '.$password)->body('Sampaikan kepada anggota secara pribadi. Anggota wajib mengganti kata sandi.')->success()->persistent()->send();
                 }),
         ])->toolbarActions([]);
     }

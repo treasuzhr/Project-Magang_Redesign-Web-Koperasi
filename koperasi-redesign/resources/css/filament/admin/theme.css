@@ -76,8 +76,9 @@
 .primkop-action-tab-count { display: inline-grid; min-width: 20px; height: 20px; place-items: center; padding-inline: 5px; border-radius: 9999px; background: #D8E6CB; color: #0E3B2B; font-size: 11px; font-variant-numeric: tabular-nums; }
 .primkop-action-tab.is-active .primkop-action-tab-count { background: rgb(255 255 255 / 20%); color: #fff; }
 .primkop-action-section > .fi-section-content-ctn > .fi-section-content { padding-top: 8px; padding-bottom: 16px; }
-.primkop-action-panel { display: flex; min-height: 22rem; flex-direction: column; padding-top: 4px; }
-.primkop-action-list { flex: 1; }
+.primkop-action-panel { display: flex; flex-direction: column; padding-top: 4px; }
+.primkop-action-panel.is-empty { min-height: 5rem; }
+.primkop-action-list { margin: 0; padding: 0; list-style: none; }
 .primkop-action-list li + li { border-top: 1px solid #D9E3D2; }
 .primkop-action-list a { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; padding: 8px 0; border-radius: 6px; }
 .primkop-action-list a:hover { color: #4C7A10; }
@@ -86,8 +87,8 @@
 .primkop-action-list strong { display: block; font-size: 13px; font-weight: 600; overflow-wrap: anywhere; }
 .primkop-action-list small { display: block; color: #56675C; font-size: 11px; line-height: 1.6; overflow-wrap: anywhere; }
 .primkop-action-list b { flex-shrink: 0; font-size: 12px; font-weight: 600; font-variant-numeric: tabular-nums; }
-.primkop-action-empty { flex: 1; display: grid; place-items: center; color: #56675C; font-size: 13px; text-align: center; }
-.primkop-action-all { align-self: flex-start; margin-top: 12px; color: #315A25; font-size: 12px; font-weight: 600; }
+.primkop-action-empty { display: grid; min-height: 5rem; place-items: center; margin: 0; color: #56675C; font-size: 13px; text-align: center; }
+.primkop-action-all { align-self: flex-start; margin-top: 12px; padding-top: 12px; border-top: 1px solid #D9E3D2; color: #315A25; font-size: 12px; font-weight: 600; }
 .primkop-action-all:hover { color: #4C7A10; text-decoration: underline; }
 @container (max-width: 48rem) {
     .primkop-action-section .fi-section-header-content > .fi-section-header-after-ctn { align-self: stretch; width: 100%; flex: 1 0 100%; }

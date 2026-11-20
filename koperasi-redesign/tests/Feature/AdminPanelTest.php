@@ -108,6 +108,93 @@ class AdminPanelTest extends TestCase
         $this->assertTrue($forced->user->must_change_password);
     }
 
+    public function test_member_credentials_fields_do_not_autofill_and_are_empty_on_create(): void
+    {
+        $this->admin();
+        $create = Livewire::test(CreateAnggota::class);
+        $formData = $create->get('data');
+        $this->assertEmpty($formData['nip'] ?? null);
+        $this->assertEmpty($formData['password'] ?? null);
+
+        $document = new \DOMDocument;
+        $previous = libxml_use_internal_errors(true);
+        $document->loadHTML($create->html());
+        libxml_clear_errors();
+        libxml_use_internal_errors($previous);
+        $xpath = new \DOMXPath($document);
+
+        $nip = $xpath->query('//input[@name="cooperative_member_reference"]')->item(0);
+        $this->assertNotNull($nip);
+        $this->assertSame('', $nip->getAttribute('value'));
+        $this->assertSame('off', $nip->getAttribute('autocomplete'));
+        $this->assertSame('cooperative_member_reference', $nip->getAttribute('name'));
+        $this->assertSame('other', $nip->getAttribute('data-form-type'));
+
+        $password = $xpath->query('//input[@type="password" and @autocomplete="new-password"]')->item(0);
+        $this->assertNotNull($password);
+        $this->assertSame('', $password->getAttribute('value'));
+        $this->assertSame('new-password', $password->getAttribute('autocomplete'));
+        $this->assertSame('true', $password->getAttribute('data-lpignore'));
+        $this->assertSame('true', $password->getAttribute('data-1p-ignore'));
+        $this->assertSame('true', $password->getAttribute('data-bwignore'));
+    }
+
+    public function test_edit_member_form_shows_member_nip_but_never_renders_password(): void
+    {
+        $this->admin();
+        $member = app(AdminMemberAccounts::class)->create($this->data());
+        $edit = Livewire::test(EditAnggota::class, ['record' => $member->id]);
+
+        $this->assertSame('TEST-ANGGOTA-001', $edit->get('data.nip'));
+        $edit->assertDontSee('Kata sandi awal')
+            ->assertDontSeeHtml('wire:model="data.password"');
+    }
+
+    public function test_member_forms_require_consistent_exit_dates_and_statuses(): void
+    {
+        $this->admin();
+
+        Livewire::test(CreateAnggota::class)
+            ->fillForm($this->data(['status' => 'keluar', 'tanggal_keluar' => '2025-12-31']))
+            ->call('create')
+            ->assertHasFormErrors(['tanggal_keluar' => 'after_or_equal']);
+
+        Livewire::test(CreateAnggota::class)
+            ->fillForm($this->data(['status' => 'aktif', 'tanggal_keluar' => '2026-02-01']))
+            ->call('create')
+            ->assertHasFormErrors(['status' => 'not_in']);
+
+        Livewire::test(CreateAnggota::class)
+            ->fillForm($this->data(['status' => 'pensiun']))
+            ->call('create')
+            ->assertHasFormErrors(['tanggal_keluar' => 'required']);
+    }
+
+    public function test_member_admin_forms_use_indonesian_labels_and_filament_locale_is_panel_scoped(): void
+    {
+        $this->admin();
+        $this->get('/admin/anggota/create')
+            ->assertOk()
+            ->assertSee('Tambah Anggota')
+            ->assertSee('Tambah')
+            ->assertSee('Simpan')
+            ->assertSee('Simpan & tambah lagi')
+            ->assertSee('Batal')
+            ->assertSee('Isi jika anggota berhenti (pensiun, pindah, atau mengundurkan diri). Kosongkan jika masih aktif.');
+        $this->assertSame('en', app()->getLocale());
+
+        $member = app(AdminMemberAccounts::class)->create($this->data());
+        $this->get('/admin/anggota/'.$member->id.'/edit')
+            ->assertOk()
+            ->assertSee('Ubah Anggota')
+            ->assertSee('Ubah')
+            ->assertSee('Simpan perubahan')
+            ->assertSee('Batal');
+
+        $this->get('/admin/berita/create')->assertOk()->assertSee('Buat Berita');
+        $this->assertSame('en', app()->getLocale());
+    }
+
     public function test_duplicate_nip_is_rejected_without_creating_half_an_account(): void
     {
         $this->admin();
